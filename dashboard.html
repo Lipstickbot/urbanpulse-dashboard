@@ -14,6 +14,16 @@
             font-family: 'Inter', sans-serif;
             background-color: #0b1326;
             color: #dae2fd;
+            scrollbar-width: none;
+        }
+        body::-webkit-scrollbar,
+        *::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+        * {
+            scrollbar-width: none;
         }
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -90,6 +100,12 @@
             font-weight: 700;
             color: #f8fbff;
         }
+        .header-feed-item {
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(15, 23, 42, 0.64);
+            border-radius: 14px;
+            padding: 12px 14px;
+        }
         .chart-chip.active {
             background: rgba(0, 109, 230, 0.2);
             border-color: rgba(173, 198, 255, 0.45);
@@ -149,6 +165,11 @@
             stroke: rgba(255,255,255,0.34);
             transform: translateY(-2px);
         }
+        .district-active {
+            stroke: rgba(255,255,255,0.52) !important;
+            stroke-width: 3 !important;
+            filter: drop-shadow(0 0 18px rgba(255,255,255,0.12));
+        }
         .district-label {
             fill: rgba(255,255,255,0.8);
             font-size: 12px;
@@ -157,17 +178,91 @@
             text-transform: uppercase;
             pointer-events: none;
         }
+        .district-insight-card {
+            position: absolute;
+            min-width: 260px;
+            max-width: 320px;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(173, 198, 255, 0.16);
+            box-shadow: 0 20px 40px rgba(2, 8, 23, 0.35);
+            transition: left 0.45s ease, top 0.45s ease, opacity 0.35s ease;
+            z-index: 12;
+            pointer-events: none;
+        }
+        .district-insight-card.hidden,
+        .district-insight-line.hidden,
+        .district-insight-dot.hidden {
+            opacity: 0;
+        }
+        .district-insight-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(173, 198, 255, 0.2), rgba(173, 198, 255, 0.88));
+            transform-origin: 0 50%;
+            z-index: 11;
+            pointer-events: none;
+            box-shadow: 0 0 12px rgba(173, 198, 255, 0.22);
+        }
+        .district-insight-dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #adc6ff;
+            box-shadow: 0 0 0 4px rgba(173, 198, 255, 0.12), 0 0 18px rgba(173, 198, 255, 0.45);
+            z-index: 12;
+            pointer-events: none;
+        }
         .map-legend-chip {
             border: 1px solid rgba(255,255,255,0.1);
             background: rgba(15, 23, 42, 0.55);
         }
         .ai-chat-bubble-user {
-            background: rgba(0, 109, 230, 0.18);
-            border: 1px solid rgba(173, 198, 255, 0.18);
+            background: linear-gradient(180deg, rgba(24, 119, 242, 0.28), rgba(12, 87, 190, 0.24));
+            border: 1px solid rgba(173, 198, 255, 0.16);
+            box-shadow: 0 12px 24px rgba(0, 109, 230, 0.14);
         }
         .ai-chat-bubble-ai {
-            background: rgba(11, 18, 34, 0.55);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 12px 24px rgba(2, 8, 23, 0.24);
+        }
+        .ai-chat-row {
+            display: flex;
+            width: 100%;
+        }
+        .ai-chat-row.user {
+            justify-content: flex-end;
+        }
+        .ai-chat-row.assistant,
+        .ai-chat-row.system {
+            justify-content: flex-start;
+        }
+        .ai-chat-card {
+            max-width: 94%;
+            border-radius: 18px;
+            padding: 14px 16px;
+        }
+        .ai-chat-row.user .ai-chat-card {
+            max-width: 72%;
+            border-bottom-right-radius: 8px;
+        }
+        .ai-chat-row.assistant .ai-chat-card,
+        .ai-chat-row.system .ai-chat-card {
+            max-width: 100%;
+            border-bottom-left-radius: 8px;
+        }
+        .ai-chat-input-shell {
+            background: rgba(6, 14, 32, 0.92);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 10px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        .ai-chat-input-shell:focus-within {
+            border-color: rgba(173, 198, 255, 0.35);
+            box-shadow: 0 0 0 3px rgba(0, 109, 230, 0.12);
         }
         .pulse-node {
             animation: mapPulse 2.4s ease-in-out infinite;
@@ -267,31 +362,73 @@
 </aside>
 
 <main class="flex-1 ml-64 min-h-screen relative flex flex-col overflow-visible">
-    <header class="fixed top-0 right-0 left-64 h-16 flex justify-between items-center px-8 z-40 bg-[#131b2e]/60 backdrop-blur-xl shadow-xl shadow-[#0b1326]/50">
-        <div class="flex items-center gap-6">
-            <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 text-lg">search</span>
-                <input class="bg-[#060e20] border-none rounded-lg pl-10 pr-4 py-2 text-sm w-80 text-white focus:ring-2 focus:ring-[#adc6ff] outline-none" placeholder="Search districts, sensors..." type="text"/>
-            </div>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-2 px-3 py-1 bg-tertiary-container/10 rounded-full border border-tertiary-container/30">
+    <header class="fixed top-0 right-0 left-64 h-16 flex justify-between items-center px-8 z-40 bg-[#131b2e]/75 backdrop-blur-xl shadow-xl shadow-[#0b1326]/50 border-b border-white/5">
+        <div class="flex items-center gap-4">
+            <div class="hidden items-center gap-2 px-3 py-1 bg-tertiary-container/10 rounded-full border border-tertiary-container/30">
                 <span class="w-1.5 h-1.5 bg-tertiary-container rounded-full animate-pulse" id="global-status-dot"></span>
                 <span id="global-status" class="text-xs font-semibold text-tertiary-container">Status: Warning</span>
             </div>
-            <div class="flex items-center gap-4">
-                <button class="p-2 text-[#c2c6d8] hover:bg-[#31394d] rounded-lg transition-all relative">
-                    <span class="material-symbols-outlined">notifications</span>
-                    <span class="absolute top-2 right-2 w-2 h-2 bg-tertiary-container rounded-full"></span>
-                </button>
+            <div>
+                <p id="header-command-label" class="text-[10px] uppercase tracking-[0.22em] text-[#adc6ff]">UrbanPulse Command</p>
+                <p id="header-command-title" class="text-sm font-semibold text-white">Almaty Live Operations</p>
             </div>
-            <div class="flex items-center gap-3 pl-6 border-l border-gray-700/50">
-                <div class="text-right">
-                    <p class="text-xs font-bold text-white">Admin Command</p>
-                    <p class="text-[10px] text-gray-400">Urban Planner</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="relative">
+                <button id="header-notifications-btn" class="group flex items-center gap-3 px-4 py-2 rounded-xl border border-white/10 bg-[#0f172a]/60 text-white hover:border-[#adc6ff]/30 hover:bg-[#162036] transition-all">
+                    <div class="relative">
+                        <span class="material-symbols-outlined text-[20px] text-[#adc6ff]">notifications</span>
+                        <span id="header-notification-dot" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#ef4444] rounded-full border border-[#131b2e]"></span>
+                    </div>
+                    <div class="text-left leading-none">
+                        <p id="header-alerts-label" class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Alerts</p>
+                        <p id="header-notification-label" class="text-xs font-semibold text-white">3 active</p>
+                    </div>
+                </button>
+                <div id="header-notifications-panel" class="hidden absolute right-0 top-14 w-[340px] rounded-2xl border border-white/10 bg-[#111a2e]/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(2,8,23,0.55)] p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <p id="notifications-title" class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Notifications</p>
+                            <p id="notifications-subtitle" class="text-sm font-semibold text-white">Command Center Feed</p>
+                        </div>
+                        <button id="clear-notifications-btn" class="text-[10px] font-semibold text-[#adc6ff] hover:text-white transition-colors">Clear</button>
+                    </div>
+                    <div id="header-notifications-list" class="space-y-2 max-h-[280px] overflow-y-auto pr-1"></div>
                 </div>
-                <div class="w-9 h-9 rounded-full bg-surface-container-highest overflow-hidden flex justify-center items-center">
-                    <span class="material-symbols-outlined text-gray-300">person</span>
+            </div>
+            <div class="relative">
+                <button id="header-account-btn" class="flex items-center gap-3 pl-4 border-l border-gray-700/50">
+                    <div class="text-right">
+                        <p id="header-account-name" class="text-xs font-bold text-white">Admin Command</p>
+                        <div class="flex items-center justify-end gap-2 mt-0.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <p id="header-account-role" class="text-[10px] text-gray-400">Urban Planner</p>
+                        </div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-surface-container-highest border border-white/10 overflow-hidden flex justify-center items-center shadow-[0_10px_20px_rgba(2,8,23,0.3)]">
+                        <span class="material-symbols-outlined text-gray-300">person</span>
+                    </div>
+                </button>
+                <div id="header-account-panel" class="hidden absolute right-0 top-14 w-[280px] rounded-2xl border border-white/10 bg-[#111a2e]/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(2,8,23,0.55)] p-4">
+                    <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-surface-container-highest border border-white/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-gray-300">person</span>
+                    </div>
+                    <div>
+                        <p id="account-panel-name" class="text-sm font-bold text-white">Admin Command</p>
+                            <p id="account-panel-role" class="text-[11px] text-gray-400">Urban Planner • Smart City Control</p>
+                        </div>
+                    </div>
+                <div class="space-y-2">
+                    <div class="rounded-xl border border-white/5 bg-surface-container-highest/25 p-3">
+                        <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Shift</p>
+                        <p class="text-sm font-semibold text-white">Live Operations</p>
+                    </div>
+                        <div class="rounded-xl border border-white/5 bg-surface-container-highest/25 p-3">
+                            <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Access</p>
+                            <p class="text-sm font-semibold text-white">Traffic, Ecology, AI Copilot</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -385,25 +522,25 @@
                         <circle id="cloud-third" class="pollution-cloud" cx="255" cy="335" r="130" fill="url(#hotBlue)"></circle>
                     </g>
                     <g opacity="0.34">
-                        <path d="M145,154 L188,122 L286,96 L442,118 L619,106 L719,171 L760,264 L732,416 L586,470 L318,446 L210,422 L175,356 L146,206 Z" fill="none" stroke="#5f739f" stroke-width="4" stroke-linejoin="round"></path>
+                        <path d="M132,158 L182,120 L286,92 L438,114 L620,104 L730,172 L785,264 L758,418 L592,474 L316,452 L204,426 L162,356 L138,212 Z" fill="none" stroke="#5f739f" stroke-width="4" stroke-linejoin="round"></path>
                     </g>
                     <g id="district-group">
-                        <path id="district-alatau" class="district" d="M145,154 L188,122 L286,96 L345,145 L332,220 L249,245 L166,206 Z" fill="url(#districtGlow)"></path>
-                        <path id="district-bostandyk" class="district" d="M345,145 L442,118 L500,145 L485,206 L406,216 L332,220 Z" fill="url(#districtGlow)"></path>
-                        <path id="district-auezov" class="district" d="M249,245 L332,220 L406,216 L388,301 L309,325 L238,301 Z" fill="url(#districtGlow)"></path>
-                        <path id="district-almaly" class="district" d="M406,216 L485,206 L566,220 L555,286 L516,306 L438,292 L388,301 Z" fill="url(#districtGlow)"></path>
-                        <path id="district-medeu" class="district" d="M500,145 L619,106 L719,171 L700,260 L636,301 L555,286 L566,220 Z" fill="url(#districtGlow)"></path>
-                        <path id="district-nauryzbay" class="district" d="M238,301 L309,325 L438,292 L420,390 L318,446 L210,422 L175,356 Z" fill="url(#districtGlow)"></path>
-                        <path id="district-turksib" class="district" d="M438,292 L516,306 L555,286 L636,301 L732,416 L586,470 L505,425 L420,390 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-alatau" class="district" d="M162,156 L214,120 L318,98 L374,144 L362,220 L274,244 L186,206 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-bostandyk" class="district" d="M374,144 L472,120 L534,148 L516,208 L430,220 L362,220 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-auezov" class="district" d="M274,244 L362,220 L430,220 L410,300 L332,326 L262,302 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-almaly" class="district" d="M430,220 L516,208 L592,230 L582,290 L540,310 L462,298 L410,300 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-medeu" class="district" d="M534,148 L652,108 L744,174 L724,258 L650,302 L582,290 L592,230 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-nauryzbay" class="district" d="M262,302 L332,326 L462,298 L444,392 L344,448 L230,424 L188,356 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-turksib" class="district" d="M444,392 L462,298 L540,310 L650,302 L754,420 L618,474 L534,430 Z" fill="url(#districtGlow)"></path>
                     </g>
                     <g>
-                        <text x="203" y="178" class="district-label">ALATAU</text>
-                        <text x="365" y="170" class="district-label">BOSTANDYK</text>
-                        <text x="282" y="278" class="district-label">AUEZOV</text>
-                        <text x="448" y="266" class="district-label">ALMALY</text>
-                        <text x="620" y="224" class="district-label">MEDEU</text>
-                        <text x="245" y="392" class="district-label">NAURYZBAY</text>
-                        <text x="560" y="382" class="district-label">TURKSIB</text>
+                        <text x="220" y="178" class="district-label">ALATAU</text>
+                        <text x="402" y="170" class="district-label">BOSTANDYK</text>
+                        <text x="302" y="280" class="district-label">AUEZOV</text>
+                        <text x="472" y="268" class="district-label">ALMALY</text>
+                        <text x="652" y="230" class="district-label">MEDEU</text>
+                        <text x="262" y="392" class="district-label">NAURYZBAY</text>
+                        <text x="572" y="386" class="district-label">TURKSIB</text>
                     </g>
                     <g id="map-pulses">
                         <circle id="pulse-primary" class="pulse-node" cx="498" cy="238" r="10" fill="#ff7b7b"></circle>
@@ -439,14 +576,21 @@
             <div class="absolute bottom-6 left-6 right-6 flex justify-between items-end">
                 <div class="glass-panel p-4 rounded-xl flex gap-6 border border-gray-700/50">
                     <div class="flex flex-col">
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wider">Current Area</span>
+                        <span id="current-area-label" class="text-[10px] text-gray-400 uppercase tracking-wider">Current Area</span>
                         <span class="text-sm font-bold text-white" id="current-area">Financial District</span>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wider">Population Flow</span>
+                        <span id="population-flow-label" class="text-[10px] text-gray-400 uppercase tracking-wider">Population Flow</span>
                         <span class="text-sm font-bold text-white" id="population-flow">142.4k / hr</span>
                     </div>
                 </div>
+            </div>
+            <div id="district-insight-line" class="district-insight-line hidden"></div>
+            <div id="district-insight-dot" class="district-insight-dot hidden"></div>
+            <div id="district-insight-card" class="district-insight-card rounded-2xl p-4 hidden">
+                <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]" id="district-insight-mode">District Insight</p>
+                <p class="text-base font-bold text-white mt-1" id="district-insight-title">Almaly District</p>
+                <p class="text-xs text-gray-400 mt-2 leading-relaxed" id="district-insight-text">Select a district on the map to see a focused explanation for the current traffic or ecology mode.</p>
             </div>
         </div>
 
@@ -458,28 +602,23 @@
                     </div>
                     <div class="flex-1">
                         <h2 class="text-lg font-bold text-white">AI City Copilot</h2>
-                        <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]" id="model-source">Model: fallback ready</p>
+                        <p class="hidden text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]" id="model-source">Model: fallback ready</p>
                     </div>
                 </div>
 
                 <div class="bg-primary-container/8 border border-primary-container/25 rounded-xl p-4 mb-6 relative overflow-hidden" id="ai-alert-box">
                     <div class="absolute top-0 left-0 w-1 h-full bg-primary-container" id="ai-alert-bar"></div>
-                    <div class="flex items-center gap-2 mb-3">
+                    <div class="hidden items-center gap-2 mb-3">
                         <span class="material-symbols-outlined text-[#60a5fa] text-lg" id="ai-alert-icon">forum</span>
                         <span class="text-[10px] font-bold text-[#adc6ff] uppercase tracking-widest" id="ai-alert-title">AI Conversation</span>
                     </div>
                     <div class="space-y-3">
-                        <div id="ai-chat-feed" class="space-y-3 max-h-[280px] overflow-y-auto pr-1">
-                            <div class="rounded-xl bg-[#0b1222]/55 border border-white/5 p-3">
-                                <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">AI Welcome</p>
-                                <p class="text-sm text-white font-medium leading-tight" id="ai-desc">Ask me anything about the dashboard, the current city signals, the map, or the next best response.</p>
-                            </div>
-                            <div class="rounded-xl bg-primary-container/10 border border-primary-container/20 p-3">
-                                <p class="text-[9px] text-[#adc6ff] uppercase font-bold tracking-wider mb-1">AI Hint</p>
-                                <p class="text-sm text-white font-medium leading-tight" id="ai-live-solution">Try: what is happening, why is it risky, which district is affected, or what should we do now?</p>
-                            </div>
+                        <div id="ai-chat-feed" class="space-y-3 max-h-[320px] overflow-y-auto pr-1 pb-1"></div>
+                        <div class="hidden">
+                            <p id="ai-desc">Ask me anything about the dashboard, the current city signals, the map, or the next best response.</p>
+                            <p id="ai-live-solution">Try: what is happening, why is it risky, which district is affected, or what should we do now?</p>
                         </div>
-                        <div class="flex items-center justify-between gap-3">
+                        <div class="hidden flex items-center justify-between gap-3">
                             <div>
                                 <h4 class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">Criticality</h4>
                                 <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-container/20 rounded border border-primary-container/30" id="ai-criticality-bg">
@@ -492,16 +631,16 @@
                             </div>
                         </div>
                         <div class="rounded-xl border border-white/10 bg-[#0b1222]/45 p-3">
-                            <div class="flex items-center justify-between gap-3 mb-3">
+                            <div class="flex items-center justify-between gap-3 mb-2">
                                 <div>
-                                    <p id="chat-heading" class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">AI Chat</p>
-                                    <p id="chat-subtitle" class="text-[11px] text-gray-400">Ask about risks, reasons, next actions, or district status.</p>
+                                    <p id="chat-heading" class="hidden text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">AI Chat</p>
+                                    <p id="chat-subtitle" class="text-[11px] text-gray-400">Спросите про риски, причины, следующие действия или районы.</p>
                                 </div>
-                                <span class="text-[10px] px-2 py-1 rounded-full bg-primary-container/15 border border-primary-container/20 text-[#adc6ff]" id="chat-mode-badge">Live Copilot</span>
+                                <span class="hidden text-[10px] px-2 py-1 rounded-full bg-primary-container/15 border border-primary-container/20 text-[#adc6ff]" id="chat-mode-badge">Live Copilot</span>
                             </div>
-                            <div class="flex gap-2">
-                                <input id="chat-input" type="text" placeholder="Ask the AI what is happening in the city..." class="flex-1 bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
-                                <button id="chat-send-btn" class="px-4 py-2 rounded-lg bg-primary-container text-white text-sm font-semibold border border-blue-400/40 hover:bg-blue-500 transition-all flex items-center gap-2">
+                            <div class="ai-chat-input-shell flex gap-2">
+                                <input id="chat-input" type="text" placeholder="Спросите AI, что происходит в городе..." class="flex-1 bg-transparent border-none rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:ring-0 outline-none">
+                                <button id="chat-send-btn" class="px-4 py-2 rounded-xl bg-primary-container text-white text-sm font-semibold border border-blue-400/40 hover:bg-blue-500 transition-all flex items-center gap-2 shadow-[0_10px_24px_rgba(0,109,230,0.22)]">
                                     <span class="material-symbols-outlined text-base">send</span>
                                     <span id="chat-send-label">Send</span>
                                 </button>
@@ -515,9 +654,9 @@
         <div class="col-span-8 bg-surface-container-low rounded-xl p-6 border border-primary-container/20 shadow-[0_0_24px_rgba(0,109,230,0.08)]">
             <div class="flex items-start justify-between gap-6 mb-6">
                 <div>
-                    <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Live KPI Analytics</p>
-                    <h3 class="text-xl font-bold text-white mt-1">Historical Trend Graph</h3>
-                    <p class="text-xs text-gray-400 mt-1">Choose a metric like Avg Flow or Air Index and compare how the city behaves under different datasets.</p>
+                    <p id="analytics-label" class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Live KPI Analytics</p>
+                    <h3 id="analytics-title" class="text-xl font-bold text-white mt-1">Historical Trend Graph</h3>
+                    <p id="analytics-subtitle" class="text-xs text-gray-400 mt-1">Choose a metric like Avg Flow or Air Index and compare how the city behaves under different datasets.</p>
                 </div>
                 <div class="flex flex-wrap gap-2 justify-end" id="chart-metric-switcher">
                     <button class="chart-chip active px-3 py-2 rounded-lg border border-white/10 bg-surface-container-highest/40 text-xs font-semibold text-[#adc6ff]" data-metric="avg_flow">Avg Flow</button>
@@ -531,40 +670,6 @@
             </div>
         </div>
 
-        <div class="col-span-4 flex flex-col gap-4">
-            <div class="bg-surface-container-low rounded-xl p-5 border border-white/10">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center">
-                        <span class="material-symbols-outlined text-gray-300">person</span>
-                    </div>
-                    <div>
-                        <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Account</p>
-                        <h3 class="text-base font-bold text-white" id="account-name">Admin Command</h3>
-                        <p class="text-[10px] text-gray-400">Urban Planner • Smart City Control</p>
-                    </div>
-                </div>
-                <div class="space-y-3 mb-4">
-                    <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-highest/30 border border-white/5">
-                        <div>
-                            <p class="text-xs font-semibold text-white">AI Auto Alerts</p>
-                            <p class="text-[10px] text-gray-400">Push critical incidents to the command center.</p>
-                        </div>
-                        <button class="switch active" data-setting-switch="alerts" aria-label="Toggle AI Auto Alerts"></button>
-                    </div>
-                    <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-highest/30 border border-white/5">
-                        <div>
-                            <p class="text-xs font-semibold text-white">Privacy Masking</p>
-                            <p class="text-[10px] text-gray-400">Hide district-sensitive data in public demo mode.</p>
-                        </div>
-                        <button class="switch" data-setting-switch="privacy" aria-label="Toggle Privacy Masking"></button>
-                    </div>
-                </div>
-                <div class="rounded-xl border border-primary-container/20 bg-primary-container/10 p-3">
-                    <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff] mb-1">Settings Space</p>
-                    <p class="text-xs text-white">This zone is ready for dashboard preferences, profile controls, and operator permissions.</p>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div id="settings-page" class="hidden mt-16 p-8 flex-1">
@@ -752,6 +857,79 @@
             }
         };
 
+        Object.assign(uiText.en, {
+            commandLabel: 'UrbanPulse Command',
+            commandTitle: 'Almaty Live Operations',
+            alertsLabel: 'Alerts',
+            notificationsTitle: 'Notifications',
+            notificationsSubtitle: 'Command Center Feed',
+            clearLabel: 'Clear',
+            accountLabel: 'Account',
+            analyticsLabel: 'Live KPI Analytics',
+            analyticsTitle: 'Historical Trend Graph',
+            analyticsSubtitle: 'Choose a metric like Avg Flow or Air Index and compare how the city behaves under different datasets.',
+            currentAreaLabel: 'Current Area',
+            populationFlowLabel: 'Population Flow'
+        });
+        Object.assign(uiText.ru, {
+            navOverview: 'Обзор',
+            navTraffic: 'Трафик',
+            navEcology: 'Экология',
+            navSettings: 'Настройки',
+            kpiDensity: 'Плотность',
+            kpiSpeed: 'Поток',
+            kpiAqi: 'Индекс воздуха',
+            kpiPm: 'Частицы',
+            chatHeading: 'AI Чат',
+            chatSubtitle: 'Спрашивайте про риски, причины, следующие действия и районы.',
+            chatPlaceholder: 'Спросите AI, что происходит в городе...',
+            chatSend: 'Отправить',
+            settingsWorkspace: 'Пространство настроек',
+            settingsTitle: 'Настройки дашборда',
+            settingsSubtitle: 'Меняйте язык, акцентный цвет, режим интерфейса и параметры оператора прямо в командном центре.',
+            commandLabel: 'Командный центр UrbanPulse',
+            commandTitle: 'Живая оперативная карта Алматы',
+            alertsLabel: 'Уведомления',
+            notificationsTitle: 'Уведомления',
+            notificationsSubtitle: 'Лента командного центра',
+            clearLabel: 'Очистить',
+            accountLabel: 'Аккаунт',
+            analyticsLabel: 'Живая KPI аналитика',
+            analyticsTitle: 'Исторический график',
+            analyticsSubtitle: 'Выберите метрику, например поток или индекс воздуха, и сравните, как город ведет себя в разных режимах.',
+            currentAreaLabel: 'Текущий район',
+            populationFlowLabel: 'Поток населения'
+        });
+        Object.assign(uiText.kz, {
+            navOverview: 'Шолу',
+            navTraffic: 'Трафик',
+            navEcology: 'Экология',
+            navSettings: 'Баптаулар',
+            kpiDensity: 'Тығыздық',
+            kpiSpeed: 'Ағын',
+            kpiAqi: 'Ауа индексі',
+            kpiPm: 'Бөлшектер',
+            chatHeading: 'AI Чат',
+            chatSubtitle: 'Тәуекел, себеп, келесі әрекет және аудан туралы сұраңыз.',
+            chatPlaceholder: 'AI-дан қалада не болып жатқанын сұраңыз...',
+            chatSend: 'Жіберу',
+            settingsWorkspace: 'Баптау аймағы',
+            settingsTitle: 'Дашборд баптаулары',
+            settingsSubtitle: 'Тілді, акцент түсін, интерфейс режимін және оператор параметрлерін осы жерден өзгертіңіз.',
+            commandLabel: 'UrbanPulse басқару орталығы',
+            commandTitle: 'Алматының жанды операциялық картасы',
+            alertsLabel: 'Хабарламалар',
+            notificationsTitle: 'Хабарламалар',
+            notificationsSubtitle: 'Басқару орталығының лентасы',
+            clearLabel: 'Тазарту',
+            accountLabel: 'Аккаунт',
+            analyticsLabel: 'Тікелей KPI аналитикасы',
+            analyticsTitle: 'Тарихи график',
+            analyticsSubtitle: 'Ағын немесе ауа индексі сияқты метриканы таңдап, қаланың әр түрлі режимдерде қалай өзгеретінін салыстырыңыз.',
+            currentAreaLabel: 'Ағымдағы аудан',
+            populationFlowLabel: 'Халық ағыны'
+        });
+
         const kpiTitlesByTab = {
             en: {
                 overview: { density: 'City Load', speed: 'Avg Flow', aqi: 'Air Index', pm: 'Particulates' },
@@ -793,10 +971,27 @@
             document.getElementById('chat-subtitle').innerText = t.chatSubtitle;
             document.getElementById('chat-input').placeholder = t.chatPlaceholder;
             document.getElementById('chat-send-label').innerText = t.chatSend;
+            document.getElementById('header-command-label').innerText = t.commandLabel;
+            document.getElementById('header-command-title').innerText = t.commandTitle;
+            document.getElementById('header-alerts-label').innerText = t.alertsLabel;
+            document.getElementById('notifications-title').innerText = t.notificationsTitle;
+            document.getElementById('notifications-subtitle').innerText = t.notificationsSubtitle;
+            document.getElementById('clear-notifications-btn').innerText = t.clearLabel;
+            if (document.getElementById('account-section-label')) {
+                document.getElementById('account-section-label').innerText = t.accountLabel;
+            }
+            document.getElementById('analytics-label').innerText = t.analyticsLabel;
+            document.getElementById('analytics-title').innerText = t.analyticsTitle;
+            document.getElementById('analytics-subtitle').innerText = t.analyticsSubtitle;
+            document.getElementById('current-area-label').innerText = t.currentAreaLabel;
+            document.getElementById('population-flow-label').innerText = t.populationFlowLabel;
             document.getElementById('settings-workspace-label').innerText = t.settingsWorkspace;
             document.getElementById('settings-title').innerText = t.settingsTitle;
             document.getElementById('settings-subtitle').innerText = t.settingsSubtitle;
             document.getElementById('preview-language').innerText = document.getElementById('settings-language').selectedOptions[0].text;
+            if (districtInsightVisible && selectedDistrict) {
+                updateDistrictInsight(selectedDistrict, activeTab, activeMetric);
+            }
         }
 
         function detectLocalLanguage(text) {
@@ -846,7 +1041,6 @@
             if (!force && signature === lastAlertSignature) return;
             lastAlertSignature = signature;
             showToast(message, payload.aqi > 150 || payload.density > 80 ? 'alert' : 'info', 'AI Auto Alerts enabled');
-            addAiMessage('AI Auto Alert', message, payload.aqi > 150 || payload.density > 80 ? 'critical' : 'neutral');
         }
 
         function parseNumericValue(htmlValue) {
@@ -892,6 +1086,9 @@
                 updateVisibleKpis(activeTab);
                 updateChart(activeTab, activeMetric);
                 updateCityMap(activeTab, activeMetric);
+                if (districtInsightVisible) {
+                    updateDistrictInsight(selectedDistrict, activeTab, activeMetric);
+                }
                 maybeRaiseAutoAlert(getCurrentPayload());
                 if (showPing) showToast('Live data refreshed from CSV streams.', 'info');
             } catch (error) {
@@ -900,28 +1097,38 @@
                 updateVisibleKpis(activeTab);
                 updateChart(activeTab, activeMetric);
                 updateCityMap(activeTab, activeMetric);
+                if (districtInsightVisible) {
+                    updateDistrictInsight(selectedDistrict, activeTab, activeMetric);
+                }
             }
         }
 
         function addAiMessage(title, body, tone = 'neutral') {
             const feed = document.getElementById('ai-chat-feed');
+            const rowTone = tone === 'user' ? 'user' : tone === 'critical' ? 'assistant' : 'assistant';
             const toneClasses = tone === 'critical'
-                ? 'bg-error-container/10 border-error-container/30'
+                ? 'bg-error-container/10 border border-error-container/30'
                 : tone === 'user'
-                    ? 'ai-chat-bubble-user border-primary-container/20'
+                    ? 'ai-chat-bubble-user'
                 : tone === 'solution'
-                    ? 'bg-primary-container/10 border-primary-container/20'
-                    : 'ai-chat-bubble-ai border-white/5';
+                    ? 'bg-primary-container/10 border border-primary-container/20'
+                    : 'ai-chat-bubble-ai';
             const node = document.createElement('div');
-            node.className = `rounded-xl border p-3 ${toneClasses}`;
+            node.className = `ai-chat-row ${rowTone}`;
+            const titleMarkup = tone === 'user'
+                ? ''
+                : `<p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">${title}</p>`;
             node.innerHTML = `
-                <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">${title}</p>
-                <p class="text-sm text-white font-medium leading-tight">${body}</p>
+                <div class="ai-chat-card ${toneClasses}">
+                    ${titleMarkup}
+                    <p class="text-sm text-white font-medium leading-relaxed">${body}</p>
+                </div>
             `;
-            feed.prepend(node);
+            feed.appendChild(node);
             while (feed.children.length > 5) {
-                feed.removeChild(feed.lastElementChild);
+                feed.removeChild(feed.firstElementChild);
             }
+            feed.scrollTop = feed.scrollHeight;
         }
 
         function updateVisibleKpis(tabName = activeTab) {
@@ -958,6 +1165,62 @@
 
         // --- TOAST NOTIFICATIONS ---
         const toastContainer = document.getElementById('toast-container');
+        let headerNotifications = [
+            {
+                title: 'Traffic pressure rising',
+                message: 'Overview zone is showing elevated density and requires monitoring.',
+                level: 'warning'
+            },
+            {
+                title: 'AI copilot online',
+                message: 'Local LLM is connected and ready for dashboard questions.',
+                level: 'info'
+            },
+            {
+                title: 'Air quality watch',
+                message: 'AQI and PM2.5 remain important in eastern districts.',
+                level: 'critical'
+            }
+        ];
+
+        function renderHeaderNotifications() {
+            const list = document.getElementById('header-notifications-list');
+            const label = document.getElementById('header-notification-label');
+            const dot = document.getElementById('header-notification-dot');
+            if (!list || !label || !dot) return;
+
+            list.innerHTML = '';
+            headerNotifications.slice(0, 8).forEach((item) => {
+                const colorClass = item.level === 'critical'
+                    ? 'text-[#ff8b8b]'
+                    : item.level === 'warning'
+                        ? 'text-[#ffc857]'
+                        : 'text-[#7dd3fc]';
+                const node = document.createElement('div');
+                node.className = 'header-feed-item';
+                node.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined ${colorClass} text-[18px] mt-0.5">notifications</span>
+                        <div>
+                            <p class="text-xs font-semibold text-white">${item.title}</p>
+                            <p class="text-[11px] text-gray-400 mt-1 leading-relaxed">${item.message}</p>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(node);
+            });
+
+            const count = headerNotifications.length;
+            label.innerText = count === 0 ? 'All clear' : `${count} active`;
+            dot.classList.toggle('hidden', count === 0);
+        }
+
+        function pushHeaderNotification(title, message, level = 'info') {
+            headerNotifications.unshift({ title, message, level });
+            headerNotifications = headerNotifications.slice(0, 8);
+            renderHeaderNotifications();
+        }
+
         function showToast(message, type = 'success', title = null) {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -974,6 +1237,10 @@
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
+
+            if (title || type === 'alert' || type === 'error') {
+                pushHeaderNotification(title || 'System update', message, type === 'error' ? 'critical' : type === 'alert' ? 'warning' : 'info');
+            }
         }
 
         async function sendChatMessage() {
@@ -1008,7 +1275,6 @@
                 document.getElementById('ai-live-solution').innerText = data.quick_actions[0];
                 document.getElementById('ai-criticality').innerText = data.criticality;
                 addAiMessage('UrbanPulse AI', data.reply, data.criticality === 'High (Red Zone)' ? 'critical' : 'neutral');
-                maybeRaiseAutoAlert(getCurrentPayload(), data.criticality === 'High (Red Zone)');
             } catch (error) {
                 const localFallback = generateLocalChatReply(message, getCurrentPayload());
                 chatHistory.push({ role: 'assistant', content: localFallback.reply });
@@ -1017,7 +1283,6 @@
                 document.getElementById('ai-live-solution').innerText = localFallback.quick_actions[0];
                 document.getElementById('ai-criticality').innerText = localFallback.criticality;
                 addAiMessage('UrbanPulse AI', localFallback.reply, localFallback.criticality === 'High (Red Zone)' ? 'critical' : 'neutral');
-                maybeRaiseAutoAlert(getCurrentPayload(), localFallback.criticality === 'High (Red Zone)');
                 showToast('AI chat switched to local fallback mode.', 'info');
             } finally {
                 sendBtn.disabled = false;
@@ -1111,6 +1376,37 @@
             nauryzbay: document.getElementById('district-nauryzbay'),
             turksib: document.getElementById('district-turksib')
         };
+        let selectedDistrict = 'almaly';
+        let districtInsightVisible = false;
+        const districtInsights = {
+            overview: {
+                alatau: 'Алатауский район сейчас относительно устойчив, но общий городской поток уже начинает постепенно переносить сюда нагрузку из центральных зон.',
+                auezov: 'Ауэзовский район показывает умеренный городской стресс: поток транспорта заметен, а экологический фон требует внимательного наблюдения в часы пик.',
+                almaly: 'Алмалинский район остается самым чувствительным центральным узлом: здесь быстрее всего собираются и транспортная плотность, и загрязнение воздуха.',
+                bostandyk: 'Бостандыкский район показывает смешанную картину, где деловая активность и локальные перегрузки создают волнообразный риск по всему сектору.',
+                medeu: 'Медеуский район сильнее других реагирует на изменения AQI и ветровой динамики, поэтому его важно оценивать в связке с общим экологическим фоном.',
+                nauryzbay: 'Наурызбайский район выглядит мягче центра, но при общем росте нагрузки может быстро включаться в контур давления как запасной городской коридор.',
+                turksib: 'Турксибский район остается важной восточной зоной риска, особенно когда растут PM2.5 и транзитное давление.'
+            },
+            traffic: {
+                alatau: 'В Алатауском районе транспортная нагрузка пока умеренная, но объездные потоки могут быстро поднять плотность на входных магистралях.',
+                auezov: 'Ауэзовский район нуждается в адаптивной регулировке светофоров и контроле перегруженных развязок для сохранения городского потока.',
+                almaly: 'Алмалинский район сейчас является ключевой точкой транспортного давления, поэтому здесь нужно быстрее всего перераспределять маршруты.',
+                bostandyk: 'Бостандыкский район демонстрирует плотный, но еще управляемый поток вокруг деловых, учебных и жилых коридоров.',
+                medeu: 'В Медеуском районе движение в целом спокойнее, но узкие участки и подъемные направления быстро становятся точками задержек.',
+                nauryzbay: 'Наурызбайский район принимает часть разгрузочного потока, поэтому важно следить за его переходом из свободного режима в перегруженный.',
+                turksib: 'Турксибский район остается одним из главных транзитных коридоров, где скачки плотности требуют быстрого диспетчерского ответа.'
+            },
+            ecology: {
+                alatau: 'В Алатауском районе экологическая обстановка пока стабильнее центра, но индустриальный и транспортный фон могут усиливать локальные выбросы.',
+                auezov: 'Ауэзовский район требует мониторинга PM2.5, особенно в периоды слабого проветривания и плотного вечернего движения.',
+                almaly: 'Алмалинский район быстрее всего накапливает загрязнение воздуха из-за плотной застройки, интенсивного транспорта и городской тепловой нагрузки.',
+                bostandyk: 'В Бостандыкском районе экология неравномерна: сочетание рельефа и магистралей формирует локальные карманы загрязнения.',
+                medeu: 'Медеуский район особенно чувствителен к изменениям AQI и переносу загрязнения по склонам, поэтому здесь нужен постоянный экологический контроль.',
+                nauryzbay: 'Наурызбайский район выглядит чище центральных зон, но его экологический фон зависит от ветра и переноса выбросов из активных коридоров.',
+                turksib: 'Турксибский район остается приоритетной экологической зоной при росте PM2.5, потому что здесь чаще собираются самые жесткие сигналы загрязнения.'
+            }
+        };
         const zoneProfiles = {
             overview: {
                 density: { area: 'Almaly District', flow: '128.7k / hr', intensities: { alatau: 0.38, auezov: 0.55, almaly: 0.88, bostandyk: 0.62, medeu: 0.26, nauryzbay: 0.3, turksib: 0.48 }, clouds: [[470,260,165,'red'],[620,230,115,'amber'],[275,345,118,'blue']] },
@@ -1138,6 +1434,94 @@
             const [r2, g2, b2] = hexToRgb(target);
             const mix = (a, b) => Math.round(a + (b - a) * amount);
             return `rgb(${mix(r1, r2)}, ${mix(g1, g2)}, ${mix(b1, b2)})`;
+        }
+
+        function updateDistrictInsight(districtName = selectedDistrict, tabName = activeTab, metric = activeMetric) {
+            const districtTitleMap = {
+                en: {
+                    alatau: 'Alatau District',
+                    auezov: 'Auezov District',
+                    almaly: 'Almaly District',
+                    bostandyk: 'Bostandyk District',
+                    medeu: 'Medeu District',
+                    nauryzbay: 'Nauryzbay District',
+                    turksib: 'Turksib District'
+                },
+                ru: {
+                    alatau: 'Алатауский район',
+                    auezov: 'Ауэзовский район',
+                    almaly: 'Алмалинский район',
+                    bostandyk: 'Бостандыкский район',
+                    medeu: 'Медеуский район',
+                    nauryzbay: 'Наурызбайский район',
+                    turksib: 'Турксибский район'
+                },
+                kz: {
+                    alatau: 'Алатау ауданы',
+                    auezov: 'Әуезов ауданы',
+                    almaly: 'Алмалы ауданы',
+                    bostandyk: 'Бостандық ауданы',
+                    medeu: 'Медеу ауданы',
+                    nauryzbay: 'Наурызбай ауданы',
+                    turksib: 'Түрксіб ауданы'
+                }
+            };
+            const anchorMap = {
+                alatau: { x: 266, y: 172, cardX: 84, cardY: 86, side: 'left' },
+                auezov: { x: 346, y: 276, cardX: 96, cardY: 218, side: 'left' },
+                almaly: { x: 498, y: 258, cardX: 170, cardY: 72, side: 'left' },
+                bostandyk: { x: 442, y: 174, cardX: 320, cardY: 88, side: 'left' },
+                medeu: { x: 648, y: 226, cardX: 486, cardY: 94, side: 'left' },
+                nauryzbay: { x: 278, y: 368, cardX: 92, cardY: 316, side: 'left' },
+                turksib: { x: 604, y: 382, cardX: 424, cardY: 52, side: 'left' }
+            };
+            const insightSet = districtInsights[tabName] || districtInsights.overview;
+            const safeDistrict = insightSet[districtName] ? districtName : 'almaly';
+            const localizedTab = {
+                en: { overview: 'OVERVIEW', traffic: 'TRAFFIC', ecology: 'ECOLOGY' },
+                ru: { overview: 'ОБЗОР', traffic: 'ТРАФИК', ecology: 'ЭКОЛОГИЯ' },
+                kz: { overview: 'ШОЛУ', traffic: 'ТРАФИК', ecology: 'ЭКОЛОГИЯ' }
+            };
+            const localizedMetric = {
+                en: { avg_flow: 'AVG FLOW', density: 'DENSITY', aqi: 'AQI', pm25: 'PM2.5' },
+                ru: { avg_flow: 'ПОТОК', density: 'ПЛОТНОСТЬ', aqi: 'AQI', pm25: 'PM2.5' },
+                kz: { avg_flow: 'АҒЫН', density: 'ТЫҒЫЗДЫҚ', aqi: 'AQI', pm25: 'PM2.5' }
+            };
+            const titleSet = districtTitleMap[currentLanguage] || districtTitleMap.en;
+            document.getElementById('district-insight-mode').innerText = `${(localizedTab[currentLanguage] || localizedTab.en)[tabName]} • ${(localizedMetric[currentLanguage] || localizedMetric.en)[metric]}`;
+            document.getElementById('district-insight-title').innerText = titleSet[safeDistrict];
+            document.getElementById('district-insight-text').innerText = insightSet[safeDistrict];
+            const insightCard = document.getElementById('district-insight-card');
+            const anchor = anchorMap[safeDistrict] || anchorMap.almaly;
+            const line = document.getElementById('district-insight-line');
+            const dot = document.getElementById('district-insight-dot');
+            insightCard.classList.remove('hidden');
+            line.classList.remove('hidden');
+            dot.classList.remove('hidden');
+            insightCard.style.left = `${anchor.cardX}px`;
+            insightCard.style.top = `${anchor.cardY}px`;
+            dot.style.left = `${anchor.x - 5}px`;
+            dot.style.top = `${anchor.y - 5}px`;
+            requestAnimationFrame(() => {
+                const cardRect = insightCard.getBoundingClientRect();
+                const targetX = anchor.side === 'left'
+                    ? anchor.cardX + cardRect.width
+                    : anchor.cardX + 6;
+                const targetY = anchor.cardY + Math.min(cardRect.height * 0.5, 78);
+                const dx = targetX - anchor.x;
+                const dy = targetY - anchor.y;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                line.style.width = `${length}px`;
+                line.style.left = `${anchor.x}px`;
+                line.style.top = `${anchor.y}px`;
+                line.style.transform = `rotate(${angle}deg)`;
+            });
+            Object.entries(districtEls).forEach(([name, element]) => {
+                element.classList.toggle('district-active', name === safeDistrict);
+            });
+            selectedDistrict = safeDistrict;
+            districtInsightVisible = true;
         }
 
         function updateCityMap(tabName = activeTab, metric = activeMetric) {
@@ -1321,7 +1705,28 @@
                 updateChart(activeTab, activeMetric);
                 closeMapChart();
                 updateCityMap(activeTab, activeMetric);
+                if (districtInsightVisible) {
+                    updateDistrictInsight(selectedDistrict, activeTab, activeMetric);
+                }
                 showToast(`Map updated: ${metricMeta[activeMetric].label}`, 'info');
+            });
+        });
+
+        Object.entries(districtEls).forEach(([districtName, element]) => {
+            element.addEventListener('click', () => {
+                const insightCard = document.getElementById('district-insight-card');
+                const line = document.getElementById('district-insight-line');
+                const dot = document.getElementById('district-insight-dot');
+                if (districtInsightVisible && selectedDistrict === districtName) {
+                    districtInsightVisible = false;
+                    insightCard.classList.add('hidden');
+                    line.classList.add('hidden');
+                    dot.classList.add('hidden');
+                    Object.values(districtEls).forEach((district) => district.classList.remove('district-active'));
+                    return;
+                }
+                selectedDistrict = districtName;
+                updateDistrictInsight(selectedDistrict, activeTab, activeMetric);
             });
         });
 
@@ -1350,8 +1755,13 @@
         });
 
         document.getElementById('settings-operator').addEventListener('input', (event) => {
-            document.getElementById('preview-operator').innerText = event.target.value || 'Admin Command';
-            document.getElementById('account-name').innerText = event.target.value || 'Admin Command';
+            const operatorName = event.target.value || 'Admin Command';
+            document.getElementById('preview-operator').innerText = operatorName;
+            if (document.getElementById('account-name')) {
+                document.getElementById('account-name').innerText = operatorName;
+            }
+            document.getElementById('header-account-name').innerText = operatorName;
+            document.getElementById('account-panel-name').innerText = operatorName;
         });
 
         document.querySelectorAll('.accent-swatch').forEach((swatch) => {
@@ -1389,10 +1799,43 @@
             showToast('Settings saved for this dashboard session.', 'success');
         });
 
+        const notificationsBtn = document.getElementById('header-notifications-btn');
+        const notificationsPanel = document.getElementById('header-notifications-panel');
+        const accountBtn = document.getElementById('header-account-btn');
+        const accountPanel = document.getElementById('header-account-panel');
+        const clearNotificationsBtn = document.getElementById('clear-notifications-btn');
+
+        notificationsBtn.addEventListener('click', () => {
+            notificationsPanel.classList.toggle('hidden');
+            accountPanel.classList.add('hidden');
+        });
+
+        accountBtn.addEventListener('click', () => {
+            accountPanel.classList.toggle('hidden');
+            notificationsPanel.classList.add('hidden');
+        });
+
+        clearNotificationsBtn.addEventListener('click', () => {
+            headerNotifications = [];
+            renderHeaderNotifications();
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!notificationsBtn.contains(event.target) && !notificationsPanel.contains(event.target)) {
+                notificationsPanel.classList.add('hidden');
+            }
+            if (!accountBtn.contains(event.target) && !accountPanel.contains(event.target)) {
+                accountPanel.classList.add('hidden');
+            }
+        });
+
         updateCityMap(activeTab, activeMetric);
+        document.getElementById('settings-language').value = 'ru';
         applyLanguage(document.getElementById('settings-language').value);
         updateVisibleKpis(activeTab);
+        renderHeaderNotifications();
         refreshDashboardData();
+        addAiMessage('UrbanPulse AI', 'Готов помочь по дашборду, карте Алматы, трафику, экологии и текущим рискам города.', 'neutral');
         document.getElementById('chat-send-btn').addEventListener('click', sendChatMessage);
         document.getElementById('chat-input').addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
@@ -1405,8 +1848,8 @@
         }, 30000);
         setInterval(() => {
             const tabName = activeTab.toUpperCase();
-            document.getElementById('ai-live-status').innerText = `Watching ${tabName} signals in real time`;
-            document.getElementById('ai-live-solution').innerText = `AI is tracking ${metricMeta[activeMetric].label} and preparing next-best operational guidance.`;
+            document.getElementById('ai-live-status').innerText = '';
+            document.getElementById('ai-live-solution').innerText = '';
         }, 5000);
 
         // --- TAB SWITCHING LOGIC ---
@@ -1445,6 +1888,9 @@
                 requestAnimationFrame(() => {
                     updateChart(activeTab, activeMetric);
                     updateCityMap(activeTab, activeMetric);
+                    if (districtInsightVisible) {
+                        updateDistrictInsight(selectedDistrict, activeTab, activeMetric);
+                    }
                     closeMapChart();
                 });
 
@@ -1455,10 +1901,9 @@
                 document.getElementById('map-alert-zone').className = "glass-panel px-4 py-2 rounded-lg flex items-center gap-3 border border-error/20";
                 document.getElementById('global-status').innerText = "Status: Warning";
                 document.getElementById('model-source').innerText = 'Model: fallback ready';
-                document.getElementById('ai-desc').innerText = 'Context updated. Ask the AI about the current signals, district risk, or the next recommended response.';
-                document.getElementById('ai-live-status').innerText = `Context switched to ${tabName.toUpperCase()}`;
-                document.getElementById('ai-live-solution').innerText = 'AI is ready to explain the current signals and answer dashboard questions.';
-                addAiMessage('Context Update', `Dashboard switched to ${tabName.toUpperCase()} data stream.`, 'neutral');
+                document.getElementById('ai-desc').innerText = '';
+                document.getElementById('ai-live-status').innerText = '';
+                document.getElementById('ai-live-solution').innerText = '';
                 showToast(`Data Source Switched to: ${tabName.toUpperCase()}`, 'info');
 
             });
