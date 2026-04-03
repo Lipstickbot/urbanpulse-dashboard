@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>UrbanPulse AI - City Command</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1326;
+            color: #dae2fd;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(45, 52, 73, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        .bento-glow-red {
+            box-shadow: 0 0 40px rgba(147, 0, 10, 0.15);
+        }
+        .map-heatmap-overlay {
+            background: radial-gradient(circle, rgba(222, 33, 28, 0.4) 0%, rgba(222, 33, 28, 0) 70%);
+        }
+        
+        /* Toast Notification Styles */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .toast {
+            background: rgba(23, 31, 51, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #006de6;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast.info {
+            border-left-color: #1f86ff;
+        }
+        .toast.success { border-left-color: #22c55e; }
+        .toast.error { border-left-color: #ef4444; }
+        .toast.alert {
+            min-width: 320px;
+            padding: 18px 22px;
+            border-left-color: #1f86ff;
+            border-radius: 14px;
+            background: rgba(19, 27, 46, 0.98);
+            box-shadow: 0 20px 40px rgba(2, 8, 23, 0.55);
+        }
+        .toast.alert .material-symbols-outlined {
+            color: #60a5fa;
+            font-size: 26px;
+        }
+        .toast-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .toast-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: #9ec5ff;
+            font-weight: 700;
+        }
+        .toast-text {
+            font-size: 13px;
+            font-weight: 700;
+            color: #f8fbff;
+        }
+        .chart-chip.active {
+            background: rgba(0, 109, 230, 0.2);
+            border-color: rgba(173, 198, 255, 0.45);
+            color: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 109, 230, 0.2);
+        }
+        .switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            border-radius: 999px;
+            background: rgba(99, 102, 241, 0.18);
+            border: 1px solid rgba(173, 198, 255, 0.18);
+            transition: all 0.25s ease;
+        }
+        .switch::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            background: #cbd5e1;
+            transition: all 0.25s ease;
+        }
+        .switch.active {
+            background: rgba(34, 197, 94, 0.25);
+            border-color: rgba(34, 197, 94, 0.45);
+        }
+        .switch.active::after {
+            transform: translateX(20px);
+            background: #86efac;
+        }
+        .metric-card-active {
+            border-color: rgba(173, 198, 255, 0.45) !important;
+            box-shadow: 0 0 24px rgba(0, 109, 230, 0.18);
+        }
+        .map-chart-shell {
+            background:
+                radial-gradient(circle at 50% 75%, rgba(222, 33, 28, 0.16) 0%, rgba(222, 33, 28, 0) 45%),
+                linear-gradient(180deg, rgba(17, 24, 39, 0.2), rgba(17, 24, 39, 0.45));
+            backdrop-filter: blur(6px);
+        }
+        .almaty-map-shell {
+            position: absolute;
+            inset: 0;
+            padding: 28px;
+        }
+        .district {
+            transition: fill 0.6s ease, stroke 0.6s ease, opacity 0.6s ease, transform 0.6s ease;
+            stroke: rgba(255,255,255,0.16);
+            stroke-width: 2;
+            cursor: pointer;
+        }
+        .district:hover {
+            stroke: rgba(255,255,255,0.34);
+            transform: translateY(-2px);
+        }
+        .district-label {
+            fill: rgba(255,255,255,0.8);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+        .map-legend-chip {
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(15, 23, 42, 0.55);
+        }
+        .ai-chat-bubble-user {
+            background: rgba(0, 109, 230, 0.18);
+            border: 1px solid rgba(173, 198, 255, 0.18);
+        }
+        .ai-chat-bubble-ai {
+            background: rgba(11, 18, 34, 0.55);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .pulse-node {
+            animation: mapPulse 2.4s ease-in-out infinite;
+            transform-origin: center;
+        }
+        .pollution-cloud {
+            transition: all 0.7s ease;
+            mix-blend-mode: screen;
+            filter: blur(18px);
+            opacity: 0.45;
+        }
+        .ridge-line {
+            opacity: 0.22;
+            stroke-dasharray: 10 10;
+        }
+        @keyframes mapPulse {
+            0%, 100% { opacity: 0.55; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.12); }
+        }
+
+        /* KPI animation */
+        .kpi-fade {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                  "primary-container": "#006de6",
+                  "on-primary-container": "#f7f7ff",
+                  "surface-container-low": "#131b2e",
+                  "surface-container-highest": "#2d3449",
+                  "surface-bright": "#31394d",
+                  "error-container": "#93000a",
+                  "on-error-container": "#ffdad6",
+                  "error": "#ffb4ab",
+                  "primary": "#adc6ff",
+                  "tertiary": "#ffb4aa",
+                  "tertiary-container": "#de211c",
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="flex min-h-screen overflow-x-hidden overflow-y-auto">
+
+<div id="toast-container"></div>
+
+<aside class="fixed left-0 top-0 h-full flex flex-col h-screen w-64 border-r-0 bg-[#131b2e] dark:bg-[#131b2e] z-50 shadow-2xl">
+    <div class="p-8">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center">
+                <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">dataset</span>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tighter text-[#dae2fd]">UrbanPulse</h1>
+                <p class="text-[10px] uppercase tracking-[0.2em] text-[#adc6ff]">City Command</p>
+            </div>
+        </div>
+    </div>
+    <nav class="mt-4 flex-1 space-y-1 px-4" id="main-nav">
+        <a class="nav-item active flex items-center gap-4 px-4 py-3 text-[#adc6ff] font-bold border-l-2 border-[#006de6] hover:bg-[#31394d] transition-colors duration-200 cursor-pointer" data-tab="overview">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="text-sm tracking-tight font-semibold">Overview</span>
+        </a>
+        <a class="nav-item flex items-center gap-4 px-4 py-3 text-[#c2c6d8] hover:text-[#dae2fd] border-l-2 border-transparent hover:bg-[#31394d] transition-colors duration-200 cursor-pointer" data-tab="traffic">
+            <span class="material-symbols-outlined">traffic</span>
+            <span class="text-sm tracking-tight font-semibold">Traffic</span>
+        </a>
+        <a class="nav-item flex items-center gap-4 px-4 py-3 text-[#c2c6d8] hover:text-[#dae2fd] border-l-2 border-transparent hover:bg-[#31394d] transition-colors duration-200 cursor-pointer" data-tab="ecology">
+            <span class="material-symbols-outlined">eco</span>
+            <span class="text-sm tracking-tight font-semibold">Ecology</span>
+        </a>
+        <a class="nav-item flex items-center gap-4 px-4 py-3 text-[#c2c6d8] hover:text-[#dae2fd] border-l-2 border-transparent hover:bg-[#31394d] transition-colors duration-200 cursor-pointer" data-tab="settings">
+            <span class="material-symbols-outlined">settings</span>
+            <span class="text-sm tracking-tight font-semibold">Settings</span>
+        </a>
+    </nav>
+    <div class="p-4 mt-auto">
+        <div class="bg-surface-container-highest/30 p-4 rounded-xl border border-tertiary-container/20">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-2 h-2 bg-tertiary-container rounded-full animate-pulse"></div>
+                <span class="text-xs uppercase tracking-widest text-gray-400">System Alert</span>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed" id="system-alert-text">AI Module active. Waiting for manual override.</p>
+        </div>
+    </div>
+</aside>
+
+<main class="flex-1 ml-64 min-h-screen relative flex flex-col overflow-visible">
+    <header class="fixed top-0 right-0 left-64 h-16 flex justify-between items-center px-8 z-40 bg-[#131b2e]/60 backdrop-blur-xl shadow-xl shadow-[#0b1326]/50">
+        <div class="flex items-center gap-6">
+            <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 text-lg">search</span>
+                <input class="bg-[#060e20] border-none rounded-lg pl-10 pr-4 py-2 text-sm w-80 text-white focus:ring-2 focus:ring-[#adc6ff] outline-none" placeholder="Search districts, sensors..." type="text"/>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 px-3 py-1 bg-tertiary-container/10 rounded-full border border-tertiary-container/30">
+                <span class="w-1.5 h-1.5 bg-tertiary-container rounded-full animate-pulse" id="global-status-dot"></span>
+                <span id="global-status" class="text-xs font-semibold text-tertiary-container">Status: Warning</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-2 text-[#c2c6d8] hover:bg-[#31394d] rounded-lg transition-all relative">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-tertiary-container rounded-full"></span>
+                </button>
+            </div>
+            <div class="flex items-center gap-3 pl-6 border-l border-gray-700/50">
+                <div class="text-right">
+                    <p class="text-xs font-bold text-white">Admin Command</p>
+                    <p class="text-[10px] text-gray-400">Urban Planner</p>
+                </div>
+                <div class="w-9 h-9 rounded-full bg-surface-container-highest overflow-hidden flex justify-center items-center">
+                    <span class="material-symbols-outlined text-gray-300">person</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="dashboard-content" class="mt-16 p-8 grid grid-cols-12 gap-6 flex-1">
+        
+        <div class="col-span-12 grid grid-cols-4 gap-6" id="kpi-container">
+            <div id="card-density" class="bg-surface-container-low p-6 rounded-xl border border-transparent transition-all duration-500 cursor-default">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="icon-bg-density" class="material-symbols-outlined text-yellow-400 p-2 bg-yellow-400/10 rounded-lg transition-colors">traffic</span>
+                    <span class="text-xs uppercase tracking-widest text-gray-400">Density</span>
+                </div>
+                <h3 id="val-density" class="text-4xl font-bold text-white mb-1">85%</h3>
+                <p id="desc-density" class="text-sm font-medium text-yellow-400 uppercase text-[10px] tracking-widest transition-colors">Traffic Elevated</p>
+            </div>
+            
+            <div id="card-speed" class="bg-surface-container-low p-6 rounded-xl border border-transparent transition-all duration-500 cursor-default">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="icon-bg-speed" class="material-symbols-outlined text-yellow-400 p-2 bg-yellow-400/10 rounded-lg transition-colors">speed</span>
+                    <span class="text-xs uppercase tracking-widest text-gray-400">Avg Flow</span>
+                </div>
+                <h3 id="val-speed" class="text-4xl font-bold text-white mb-1">24 <span class="text-lg font-normal opacity-50">km/h</span></h3>
+                <p id="desc-speed" class="text-sm font-medium text-yellow-400 uppercase text-[10px] tracking-widest transition-colors">-12% vs normal</p>
+            </div>
+            
+            <div id="card-aqi" class="bg-surface-container-low p-6 rounded-xl border border-error-container/40 bento-glow-red transition-all duration-500">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="icon-bg-aqi" class="material-symbols-outlined text-error p-2 bg-error/10 rounded-lg transition-colors">air</span>
+                    <span class="text-xs uppercase tracking-widest text-gray-400">Air Index</span>
+                </div>
+                <h3 id="val-aqi" class="text-4xl font-bold text-error mb-1 transition-colors">215</h3>
+                <p id="desc-aqi" class="text-sm font-medium text-error uppercase text-[10px] tracking-widest transition-colors">Critical AQI</p>
+            </div>
+            
+            <div id="card-pm" class="bg-surface-container-low p-6 rounded-xl border border-error-container/40 bento-glow-red transition-all duration-500">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="icon-bg-pm" class="material-symbols-outlined text-error p-2 bg-error/10 rounded-lg transition-colors">matter</span>
+                    <span class="text-xs uppercase tracking-widest text-gray-400">Particulates</span>
+                </div>
+                <h3 id="val-pm" class="text-4xl font-bold text-error mb-1 transition-colors">185 <span class="text-lg font-normal opacity-50">µg/m³</span></h3>
+                <p id="desc-pm" class="text-sm font-medium text-error uppercase text-[10px] tracking-widest transition-colors">Hazardous PM2.5</p>
+            </div>
+        </div>
+
+        <div class="col-span-8 bg-surface-container-low rounded-xl overflow-hidden relative min-h-[500px] border border-gray-800">
+            <div class="absolute inset-0 bg-[#1e293b] mix-blend-luminosity opacity-50 flex justify-center items-center overflow-hidden">
+                <div class="w-full h-full" style="background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 20px 20px;"></div>
+            </div>
+            <div class="absolute inset-0 map-heatmap-overlay animate-pulse" id="map-heatmap"></div>
+            <div class="almaty-map-shell" id="almaty-map-shell">
+                <div class="absolute right-6 top-6 flex gap-2 z-10">
+                    <div class="map-legend-chip rounded-full px-3 py-2 text-[10px] font-semibold text-white/80">Almaty Live Zones</div>
+                    <div class="map-legend-chip rounded-full px-3 py-2 text-[10px] font-semibold text-[#adc6ff]" id="map-metric-badge">OVERVIEW • DENSITY</div>
+                </div>
+                <svg viewBox="0 0 900 520" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="districtGlow" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#13203b" />
+                            <stop offset="100%" stop-color="#1d2d4d" />
+                        </linearGradient>
+                        <radialGradient id="hotRed" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#ff5a5a" stop-opacity="0.85" />
+                            <stop offset="65%" stop-color="#ff5a5a" stop-opacity="0.24" />
+                            <stop offset="100%" stop-color="#ff5a5a" stop-opacity="0" />
+                        </radialGradient>
+                        <radialGradient id="hotAmber" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#ffb020" stop-opacity="0.85" />
+                            <stop offset="65%" stop-color="#ffb020" stop-opacity="0.24" />
+                            <stop offset="100%" stop-color="#ffb020" stop-opacity="0" />
+                        </radialGradient>
+                        <radialGradient id="hotGreen" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#33d17a" stop-opacity="0.78" />
+                            <stop offset="65%" stop-color="#33d17a" stop-opacity="0.22" />
+                            <stop offset="100%" stop-color="#33d17a" stop-opacity="0" />
+                        </radialGradient>
+                        <radialGradient id="hotBlue" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#4fd1ff" stop-opacity="0.8" />
+                            <stop offset="65%" stop-color="#4fd1ff" stop-opacity="0.22" />
+                            <stop offset="100%" stop-color="#4fd1ff" stop-opacity="0" />
+                        </radialGradient>
+                    </defs>
+                    <g opacity="0.18">
+                        <path class="ridge-line" d="M30 440 C180 310, 300 260, 520 250 C660 245, 770 230, 870 170" fill="none" stroke="#8aa4d6" stroke-width="2"/>
+                        <path class="ridge-line" d="M80 110 C260 180, 410 200, 580 180 C690 166, 760 136, 850 90" fill="none" stroke="#8aa4d6" stroke-width="2"/>
+                        <path class="ridge-line" d="M140 470 C250 380, 420 320, 610 300 C730 285, 820 250, 890 210" fill="none" stroke="#8aa4d6" stroke-width="2"/>
+                    </g>
+                    <g id="pollution-layer">
+                        <circle id="cloud-primary" class="pollution-cloud" cx="525" cy="258" r="150" fill="url(#hotRed)"></circle>
+                        <circle id="cloud-secondary" class="pollution-cloud" cx="690" cy="280" r="120" fill="url(#hotAmber)"></circle>
+                        <circle id="cloud-third" class="pollution-cloud" cx="255" cy="335" r="130" fill="url(#hotBlue)"></circle>
+                    </g>
+                    <g opacity="0.34">
+                        <path d="M145,154 L188,122 L286,96 L442,118 L619,106 L719,171 L760,264 L732,416 L586,470 L318,446 L210,422 L175,356 L146,206 Z" fill="none" stroke="#5f739f" stroke-width="4" stroke-linejoin="round"></path>
+                    </g>
+                    <g id="district-group">
+                        <path id="district-alatau" class="district" d="M145,154 L188,122 L286,96 L345,145 L332,220 L249,245 L166,206 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-bostandyk" class="district" d="M345,145 L442,118 L500,145 L485,206 L406,216 L332,220 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-auezov" class="district" d="M249,245 L332,220 L406,216 L388,301 L309,325 L238,301 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-almaly" class="district" d="M406,216 L485,206 L566,220 L555,286 L516,306 L438,292 L388,301 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-medeu" class="district" d="M500,145 L619,106 L719,171 L700,260 L636,301 L555,286 L566,220 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-nauryzbay" class="district" d="M238,301 L309,325 L438,292 L420,390 L318,446 L210,422 L175,356 Z" fill="url(#districtGlow)"></path>
+                        <path id="district-turksib" class="district" d="M438,292 L516,306 L555,286 L636,301 L732,416 L586,470 L505,425 L420,390 Z" fill="url(#districtGlow)"></path>
+                    </g>
+                    <g>
+                        <text x="203" y="178" class="district-label">ALATAU</text>
+                        <text x="365" y="170" class="district-label">BOSTANDYK</text>
+                        <text x="282" y="278" class="district-label">AUEZOV</text>
+                        <text x="448" y="266" class="district-label">ALMALY</text>
+                        <text x="620" y="224" class="district-label">MEDEU</text>
+                        <text x="245" y="392" class="district-label">NAURYZBAY</text>
+                        <text x="560" y="382" class="district-label">TURKSIB</text>
+                    </g>
+                    <g id="map-pulses">
+                        <circle id="pulse-primary" class="pulse-node" cx="498" cy="238" r="10" fill="#ff7b7b"></circle>
+                        <circle id="pulse-secondary" class="pulse-node" cx="672" cy="254" r="7" fill="#4fd1ff"></circle>
+                        <circle id="pulse-third" class="pulse-node" cx="250" cy="346" r="6" fill="#f59e0b"></circle>
+                    </g>
+                </svg>
+            </div>
+            <div id="map-chart-shell" class="map-chart-shell absolute inset-0 hidden p-6">
+                <div class="h-full w-full rounded-2xl border border-white/10 bg-[#0f172a]/35 p-4 flex flex-col">
+                    <div class="flex items-center justify-between mb-4 shrink-0">
+                        <div>
+                            <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Metric Timeline</p>
+                            <h3 id="map-chart-title" class="text-lg font-bold text-white mt-1">Avg Flow Trend</h3>
+                        </div>
+                        <button id="close-map-chart" class="px-3 py-2 rounded-lg bg-surface-container-highest/50 border border-white/10 text-xs font-semibold text-white">
+                            Close Graph
+                        </button>
+                    </div>
+                    <div class="flex-1 min-h-[420px]">
+                        <canvas id="map-metric-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="absolute top-6 left-6 flex flex-col gap-3">
+                <div class="glass-panel px-4 py-2 rounded-lg flex items-center gap-3 border border-error/20" id="map-alert-zone">
+                    <div class="w-2 h-2 rounded-full bg-error-container animate-ping" id="map-dot"></div>
+                    <span class="text-xs font-bold text-white uppercase tracking-widest" id="map-zone-text">Active Incident Zone: Sector A</span>
+                </div>
+            </div>
+            
+            <div class="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+                <div class="glass-panel p-4 rounded-xl flex gap-6 border border-gray-700/50">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider">Current Area</span>
+                        <span class="text-sm font-bold text-white" id="current-area">Financial District</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider">Population Flow</span>
+                        <span class="text-sm font-bold text-white" id="population-flow">142.4k / hr</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-span-4 flex flex-col gap-4">
+            <div class="bg-surface-container-low rounded-xl p-6 flex-1 flex flex-col border border-primary-container/30 shadow-[0_0_20px_rgba(0,109,230,0.1)]">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shadow-lg shadow-primary-container/40">
+                        <span class="material-symbols-outlined text-white text-lg">smart_toy</span>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-lg font-bold text-white">AI Incident Assistant</h2>
+                        <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]" id="model-source">Model: waiting</p>
+                    </div>
+                </div>
+
+                <div class="bg-error-container/10 border border-error-container/50 rounded-xl p-4 mb-6 bento-glow-red relative overflow-hidden" id="ai-alert-box">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-error-container" id="ai-alert-bar"></div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-error text-lg animate-pulse" id="ai-alert-icon">warning</span>
+                        <span class="text-[10px] font-bold text-error uppercase tracking-widest" id="ai-alert-title">Immediate Attention</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div id="ai-chat-feed" class="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                            <div class="rounded-xl bg-[#0b1222]/55 border border-white/5 p-3">
+                                <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">AI Monitor</p>
+                                <p class="text-sm text-white font-medium leading-tight" id="ai-desc">Severe traffic gridlock at Sector A combined with a critical PM2.5 spike.</p>
+                            </div>
+                            <div class="rounded-xl bg-primary-container/10 border border-primary-container/20 p-3">
+                                <p class="text-[9px] text-[#adc6ff] uppercase font-bold tracking-wider mb-1">AI Solution</p>
+                                <p class="text-sm text-white font-medium leading-tight" id="ai-live-solution">Preparing live response plan from current city signals.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <h4 class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">Criticality</h4>
+                                <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-error-container/80 rounded border border-error/30" id="ai-criticality-bg">
+                                    <span class="text-[10px] font-bold text-white uppercase" id="ai-criticality">High (Red Zone)</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">Live Status</p>
+                                <p class="text-[10px] font-semibold text-[#adc6ff]" id="ai-live-status">Streaming city context</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-white/10 bg-[#0b1222]/55 p-3 mb-5">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                            <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">AI Chat</p>
+                            <p class="text-[11px] text-gray-400">Ask about risks, reasons, next actions, or district status.</p>
+                        </div>
+                        <span class="text-[10px] px-2 py-1 rounded-full bg-primary-container/15 border border-primary-container/20 text-[#adc6ff]" id="chat-mode-badge">Live Copilot</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input id="chat-input" type="text" placeholder="Ask the AI what is happening in the city..." class="flex-1 bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
+                        <button id="chat-send-btn" class="px-4 py-2 rounded-lg bg-primary-container text-white text-sm font-semibold border border-blue-400/40 hover:bg-blue-500 transition-all flex items-center gap-2">
+                            <span class="material-symbols-outlined text-base">send</span>
+                            Send
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-5">
+                    <label class="col-span-2">
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">Category</span>
+                        <select id="input-category" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
+                            <option value="Overview">Overview</option>
+                            <option value="Traffic">Traffic</option>
+                            <option value="Ecology">Ecology</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">Density</span>
+                        <input id="input-density" type="number" step="0.1" value="85" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
+                    </label>
+                    <label>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">Avg Speed</span>
+                        <input id="input-speed" type="number" step="0.1" value="24" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
+                    </label>
+                    <label>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">AQI</span>
+                        <input id="input-aqi" type="number" step="0.1" value="215" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
+                    </label>
+                    <label>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">PM2.5</span>
+                        <input id="input-pm" type="number" step="0.1" value="185" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
+                    </label>
+                </div>
+
+                <div class="flex-1">
+                    <h4 class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-3 px-1">3. Recommended Actions</h4>
+                    <div class="space-y-2" id="ai-actions-container">
+                        </div>
+                </div>
+
+                <button id="execute-btn" class="mt-4 w-full py-3 bg-primary-container text-white font-bold rounded-xl shadow-[0_0_15px_rgba(0,109,230,0.4)] hover:bg-blue-500 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-blue-400/50">
+                    <span class="material-symbols-outlined text-base">rocket_launch</span>
+                    Analyze With AI
+                </button>
+            </div>
+        </div>
+
+        <div class="col-span-8 bg-surface-container-low rounded-xl p-6 border border-primary-container/20 shadow-[0_0_24px_rgba(0,109,230,0.08)]">
+            <div class="flex items-start justify-between gap-6 mb-6">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Live KPI Analytics</p>
+                    <h3 class="text-xl font-bold text-white mt-1">Historical Trend Graph</h3>
+                    <p class="text-xs text-gray-400 mt-1">Choose a metric like Avg Flow or Air Index and compare how the city behaves under different datasets.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 justify-end" id="chart-metric-switcher">
+                    <button class="chart-chip active px-3 py-2 rounded-lg border border-white/10 bg-surface-container-highest/40 text-xs font-semibold text-[#adc6ff]" data-metric="avg_flow">Avg Flow</button>
+                    <button class="chart-chip px-3 py-2 rounded-lg border border-white/10 bg-surface-container-highest/40 text-xs font-semibold text-[#adc6ff]" data-metric="density">Density</button>
+                    <button class="chart-chip px-3 py-2 rounded-lg border border-white/10 bg-surface-container-highest/40 text-xs font-semibold text-[#adc6ff]" data-metric="aqi">AQI</button>
+                    <button class="chart-chip px-3 py-2 rounded-lg border border-white/10 bg-surface-container-highest/40 text-xs font-semibold text-[#adc6ff]" data-metric="pm25">PM2.5</button>
+                </div>
+            </div>
+            <div class="h-[320px] bg-[#0f172a]/35 rounded-xl border border-white/5 p-4">
+                <canvas id="kpi-chart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-span-4 flex flex-col gap-4">
+            <div class="bg-surface-container-low rounded-xl p-5 border border-white/10">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center">
+                        <span class="material-symbols-outlined text-gray-300">person</span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Account</p>
+                        <h3 class="text-base font-bold text-white" id="account-name">Admin Command</h3>
+                        <p class="text-[10px] text-gray-400">Urban Planner • Smart City Control</p>
+                    </div>
+                </div>
+                <div class="space-y-3 mb-4">
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-highest/30 border border-white/5">
+                        <div>
+                            <p class="text-xs font-semibold text-white">AI Auto Alerts</p>
+                            <p class="text-[10px] text-gray-400">Push critical incidents to the command center.</p>
+                        </div>
+                        <button class="switch active" data-setting-switch="alerts" aria-label="Toggle AI Auto Alerts"></button>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-highest/30 border border-white/5">
+                        <div>
+                            <p class="text-xs font-semibold text-white">Privacy Masking</p>
+                            <p class="text-[10px] text-gray-400">Hide district-sensitive data in public demo mode.</p>
+                        </div>
+                        <button class="switch" data-setting-switch="privacy" aria-label="Toggle Privacy Masking"></button>
+                    </div>
+                </div>
+                <div class="rounded-xl border border-primary-container/20 bg-primary-container/10 p-3">
+                    <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff] mb-1">Settings Space</p>
+                    <p class="text-xs text-white">This zone is ready for dashboard preferences, profile controls, and operator permissions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-page" class="hidden mt-16 p-8 flex-1">
+        <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-8 bg-surface-container-low rounded-xl p-6 border border-primary-container/20">
+                <div class="mb-6">
+                    <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Settings Workspace</p>
+                    <h2 class="text-2xl font-bold text-white mt-1">Dashboard Preferences</h2>
+                    <p class="text-sm text-gray-400 mt-2">Change language, accent color, interface mode and operator behavior without leaving the command center.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-surface-container-highest/30 rounded-xl p-4 border border-white/5">
+                        <label class="text-[10px] uppercase tracking-wider text-gray-400 block mb-2">Language</label>
+                        <select id="settings-language" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-3 text-sm text-white">
+                            <option value="en">English</option>
+                            <option value="ru">Русский</option>
+                            <option value="kz">Қазақша</option>
+                        </select>
+                    </div>
+                    <div class="bg-surface-container-highest/30 rounded-xl p-4 border border-white/5">
+                        <label class="text-[10px] uppercase tracking-wider text-gray-400 block mb-2">Theme Mode</label>
+                        <select id="settings-theme" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-3 text-sm text-white">
+                            <option value="dark">Dark Command</option>
+                            <option value="marine">Marine Blue</option>
+                            <option value="emerald">Emerald Ops</option>
+                        </select>
+                    </div>
+                    <div class="bg-surface-container-highest/30 rounded-xl p-4 border border-white/5">
+                        <label class="text-[10px] uppercase tracking-wider text-gray-400 block mb-2">Accent Color</label>
+                        <div class="flex gap-3" id="accent-picker">
+                            <button class="accent-swatch w-10 h-10 rounded-full border-2 border-white/30 bg-[#006de6]" data-color="#006de6"></button>
+                            <button class="accent-swatch w-10 h-10 rounded-full border border-white/20 bg-[#22c55e]" data-color="#22c55e"></button>
+                            <button class="accent-swatch w-10 h-10 rounded-full border border-white/20 bg-[#f59e0b]" data-color="#f59e0b"></button>
+                            <button class="accent-swatch w-10 h-10 rounded-full border border-white/20 bg-[#ef4444]" data-color="#ef4444"></button>
+                        </div>
+                    </div>
+                    <div class="bg-surface-container-highest/30 rounded-xl p-4 border border-white/5">
+                        <label class="text-[10px] uppercase tracking-wider text-gray-400 block mb-2">Operator Name</label>
+                        <input id="settings-operator" value="Admin Command" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-3 text-sm text-white" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="bg-surface-container-highest/30 rounded-xl p-4 border border-white/5 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-semibold text-white">Notifications</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Receive command-center alerts in real time.</p>
+                        </div>
+                        <button class="switch active" id="settings-notify-toggle"></button>
+                    </div>
+                    <div class="bg-surface-container-highest/30 rounded-xl p-4 border border-white/5 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-semibold text-white">Compact Mode</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Tighten panel spacing for projector demos.</p>
+                        </div>
+                        <button class="switch" id="settings-compact-toggle"></button>
+                    </div>
+                </div>
+
+                <button id="save-settings-btn" class="mt-6 px-5 py-3 rounded-xl bg-primary-container text-white font-bold shadow-[0_0_18px_rgba(0,109,230,0.35)]">
+                    Save Preferences
+                </button>
+            </div>
+
+            <div class="col-span-4 bg-surface-container-low rounded-xl p-6 border border-primary-container/20">
+                <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Preview</p>
+                <h3 class="text-lg font-bold text-white mt-1">Live Settings Preview</h3>
+                <div class="mt-5 rounded-xl border border-white/5 bg-surface-container-highest/30 p-4">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Current Language</p>
+                    <p class="text-base font-semibold text-white mt-1" id="preview-language">English</p>
+                </div>
+                <div class="mt-3 rounded-xl border border-white/5 bg-surface-container-highest/30 p-4">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Current Accent</p>
+                    <div class="mt-2 flex items-center gap-3">
+                        <span id="preview-accent" class="w-5 h-5 rounded-full bg-[#006de6]"></span>
+                        <span class="text-sm text-white" id="preview-accent-text">Command Blue</span>
+                    </div>
+                </div>
+                <div class="mt-3 rounded-xl border border-white/5 bg-surface-container-highest/30 p-4">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Operator</p>
+                    <p class="text-base font-semibold text-white mt-1" id="preview-operator">Admin Command</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DATA DICTIONARY FOR TABS ---
+        const tabData = {
+            overview: {
+                density: { val: "85%", desc: "Traffic Elevated", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "traffic" },
+                speed:   { val: '24 <span class="text-lg font-normal opacity-50">km/h</span>', desc: "-12% vs normal", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "speed" },
+                aqi:     { val: "215", desc: "Critical AQI", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "air" },
+                pm:      { val: '185 <span class="text-lg font-normal opacity-50">µg/m³</span>', desc: "Hazardous PM2.5", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "matter" }
+            },
+            traffic: {
+                density: { val: "96%", desc: "Severe Congestion", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "traffic" },
+                speed:   { val: '12 <span class="text-lg font-normal opacity-50">km/h</span>', desc: "-48% vs normal", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "speed" },
+                aqi:     { val: "110", desc: "Moderate AQI", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "air" },
+                pm:      { val: '45 <span class="text-lg font-normal opacity-50">µg/m³</span>', desc: "Elevated PM2.5", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "matter" }
+            },
+            ecology: {
+                density: { val: "42%", desc: "Normal Flow", color: "text-green-400", bg: "bg-green-400/10", border: "border-transparent", glow: false, icon: "traffic" },
+                speed:   { val: '52 <span class="text-lg font-normal opacity-50">km/h</span>', desc: "Optimal Speed", color: "text-green-400", bg: "bg-green-400/10", border: "border-transparent", glow: false, icon: "speed" },
+                aqi:     { val: "340", desc: "Hazardous AQI", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "air" },
+                pm:      { val: '270 <span class="text-lg font-normal opacity-50">µg/m³</span>', desc: "Critical PM2.5", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "matter" }
+            },
+            settings: {
+                density: { val: "--", desc: "Sensors Offline", color: "text-gray-500", bg: "bg-gray-500/10", border: "border-transparent", glow: false, icon: "sensors_off" },
+                speed:   { val: "--", desc: "Sensors Offline", color: "text-gray-500", bg: "bg-gray-500/10", border: "border-transparent", glow: false, icon: "sensors_off" },
+                aqi:     { val: "--", desc: "Sensors Offline", color: "text-gray-500", bg: "bg-gray-500/10", border: "border-transparent", glow: false, icon: "sensors_off" },
+                pm:      { val: "--", desc: "Sensors Offline", color: "text-gray-500", bg: "bg-gray-500/10", border: "border-transparent", glow: false, icon: "sensors_off" }
+            }
+        };
+
+        const fallbackChartSeries = {
+            overview: { labels: ['Day 01','Day 02','Day 03','Day 04','Day 05','Day 06','Day 07','Day 08','Day 09','Day 10','Day 11','Day 12'], density: [107,0,46,30,75,0,30,101,0,46,30,79], avg_flow: [28,40,37,35,36,39,34,30,41,38,35,33], aqi: [120,90,105,130,116,88,132,125,96,110,134,122], pm25: [48,20,46,52,42,18,50,47,24,45,51,44] },
+            traffic: { labels: ['Day 01','Day 02','Day 03','Day 04','Day 05','Day 06','Day 07','Day 08','Day 09','Day 10','Day 11','Day 12'], density: [112,61,102,24,116,81,70,30,112,92,96,84], avg_flow: [28.61,54.22,41.42,69.86,33.01,51.57,53.76,66.33,28.79,47.34,39.02,43.72], aqi: [110,105,114,95,122,118,111,99,130,125,119,112], pm25: [45,38,42,20,48,41,40,24,51,49,44,39] },
+            ecology: { labels: ['Day 01','Day 02','Day 03','Day 04','Day 05','Day 06','Day 07','Day 08','Day 09','Day 10','Day 11','Day 12'], density: [35,35,35,35,35,35,35,35,35,35,35,35], avg_flow: [50,49,47,46,45,44,43,42,44,46,48,49], aqi: [425,567,679,662,646,610,358,297,305,300,348,400], pm25: [364.61,420.96,463.68,454.81,448.14,437.25,312.76,275.53,263.51,271.25,284.51,287.83] }
+        };
+
+        let chartSeries = {
+            overview: { labels: [], density: [], avg_flow: [], aqi: [], pm25: [] },
+            traffic: { labels: [], density: [], avg_flow: [], aqi: [], pm25: [] },
+            ecology: { labels: [], density: [], avg_flow: [], aqi: [], pm25: [] }
+        };
+        let lastAlertSignature = '';
+        let chatHistory = [];
+
+        const tabCategoryMap = { overview: 'Overview', traffic: 'Traffic', ecology: 'Ecology', settings: 'Overview' };
+
+        function getCurrentPayload() {
+            return {
+                category: document.getElementById('input-category').value,
+                density: Number(document.getElementById('input-density').value),
+                avg_speed: Number(document.getElementById('input-speed').value),
+                aqi: Number(document.getElementById('input-aqi').value),
+                pm2_5: Number(document.getElementById('input-pm').value)
+            };
+        }
+
+        function getAlertMessage(payload) {
+            if (payload.density > 80 && payload.aqi > 150) {
+                return `Critical congestion and air-quality deterioration detected. Density ${Math.round(payload.density)}%, AQI ${Math.round(payload.aqi)}.`;
+            }
+            if (payload.aqi > 150 || payload.pm2_5 > 120) {
+                return `Air-risk escalation detected in ${payload.category}. AQI ${Math.round(payload.aqi)}, PM2.5 ${Math.round(payload.pm2_5)}.`;
+            }
+            if (payload.density > 80 || payload.avg_speed < 20) {
+                return `Mobility disruption detected in ${payload.category}. Density ${Math.round(payload.density)}%, Avg Speed ${Math.round(payload.avg_speed)} km/h.`;
+            }
+            if (payload.aqi > 100 || payload.density > 60 || payload.pm2_5 > 60) {
+                return `Urban conditions are worsening in ${payload.category}. Preventive action is recommended.`;
+            }
+            return '';
+        }
+
+        function maybeRaiseAutoAlert(payload, force = false) {
+            const alertsEnabled = document.querySelector('[data-setting-switch="alerts"]')?.classList.contains('active') ?? true;
+            if (!alertsEnabled && !force) return;
+            const message = getAlertMessage(payload);
+            if (!message) return;
+            const signature = `${payload.category}|${Math.round(payload.density)}|${Math.round(payload.aqi)}|${Math.round(payload.pm2_5)}`;
+            if (!force && signature === lastAlertSignature) return;
+            lastAlertSignature = signature;
+            showToast(message, payload.aqi > 150 || payload.density > 80 ? 'alert' : 'info', 'AI Auto Alerts enabled');
+            addAiMessage('AI Auto Alert', message, payload.aqi > 150 || payload.density > 80 ? 'critical' : 'neutral');
+        }
+
+        function parseNumericValue(htmlValue) {
+            const match = String(htmlValue).replace(',', '.').match(/-?\d+(\.\d+)?/);
+            return match ? Number(match[0]) : 0;
+        }
+
+        Object.entries(tabData).forEach(([tabName, data]) => {
+            data.category = tabCategoryMap[tabName];
+            data.density.raw = parseNumericValue(data.density.val);
+            data.speed.raw = parseNumericValue(data.speed.val);
+            data.aqi.raw = parseNumericValue(data.aqi.val);
+            data.pm.raw = parseNumericValue(data.pm.val);
+        });
+
+        async function refreshDashboardData(showPing = false) {
+            try {
+                const response = await fetch('/dashboard-data');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                chartSeries = {
+                    overview: data.overview,
+                    traffic: data.traffic,
+                    ecology: data.ecology
+                };
+
+                const applyKpis = (tabName, values) => {
+                    if (!tabData[tabName]) return;
+                    tabData[tabName].density.raw = Number(values.density || 0);
+                    tabData[tabName].density.val = `${Math.round(Number(values.density || 0))}%`;
+                    tabData[tabName].speed.raw = Number(values.avg_speed || 0);
+                    tabData[tabName].speed.val = `${Math.round(Number(values.avg_speed || 0))} <span class="text-lg font-normal opacity-50">km/h</span>`;
+                    tabData[tabName].aqi.raw = Number(values.aqi || 0);
+                    tabData[tabName].aqi.val = `${Math.round(Number(values.aqi || 0))}`;
+                    tabData[tabName].pm.raw = Number(values.pm2_5 || 0);
+                    tabData[tabName].pm.val = `${Math.round(Number(values.pm2_5 || 0))} <span class="text-lg font-normal opacity-50">µg/m³</span>`;
+                };
+
+                applyKpis('overview', data.kpis.overview || {});
+                applyKpis('traffic', data.kpis.traffic || {});
+                applyKpis('ecology', data.kpis.ecology || {});
+
+                updateChart(activeTab, activeMetric);
+                updateCityMap(activeTab, activeMetric);
+                maybeRaiseAutoAlert(getCurrentPayload());
+                if (showPing) showToast('Live data refreshed from CSV streams.', 'info');
+            } catch (error) {
+                console.error(error);
+                chartSeries = fallbackChartSeries;
+                updateChart(activeTab, activeMetric);
+                updateCityMap(activeTab, activeMetric);
+            }
+        }
+
+        function addAiMessage(title, body, tone = 'neutral') {
+            const feed = document.getElementById('ai-chat-feed');
+            const toneClasses = tone === 'critical'
+                ? 'bg-error-container/10 border-error-container/30'
+                : tone === 'user'
+                    ? 'ai-chat-bubble-user border-primary-container/20'
+                : tone === 'solution'
+                    ? 'bg-primary-container/10 border-primary-container/20'
+                    : 'ai-chat-bubble-ai border-white/5';
+            const node = document.createElement('div');
+            node.className = `rounded-xl border p-3 ${toneClasses}`;
+            node.innerHTML = `
+                <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">${title}</p>
+                <p class="text-sm text-white font-medium leading-tight">${body}</p>
+            `;
+            feed.prepend(node);
+            while (feed.children.length > 5) {
+                feed.removeChild(feed.lastElementChild);
+            }
+        }
+
+        // --- TOAST NOTIFICATIONS ---
+        const toastContainer = document.getElementById('toast-container');
+        function showToast(message, type = 'success', title = null) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
+            const iconColor = type === 'success' ? 'text-green-400' : type === 'error' ? 'text-red-400' : 'text-blue-400';
+
+            toast.innerHTML = type === 'alert'
+                ? `<span class="material-symbols-outlined">info</span><div class="toast-copy"><span class="toast-title">${title || 'AI Auto Alerts enabled'}</span><span class="toast-text">${message}</span></div>`
+                : `<span class="material-symbols-outlined ${iconColor}">${icon}</span><span class="text-sm font-medium">${message}</span>`;
+            toastContainer.appendChild(toast);
+            
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- RENDER AI ACTIONS ---
+        function renderActions(actions = null) {
+            const container = document.getElementById('ai-actions-container');
+            const items = actions || [
+                "Extend green light phase by 30% for all arterial roads.",
+                "Push notifications to residents to close windows.",
+                "Dispatch Eco-inspection to check perimeter."
+            ];
+            const icons = ['bolt', 'notifications_active', 'local_police'];
+            const titles = ['Adaptive Traffic Control', 'Public Health Advisory', 'Environmental Response'];
+            container.innerHTML = items.map((action, index) => `
+                <div class="ai-action-item group flex items-start gap-3 p-3 rounded-xl bg-surface-container-highest/40 hover:bg-surface-bright transition-all cursor-pointer border border-transparent hover:border-primary/30">
+                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5"><span class="action-icon material-symbols-outlined text-primary text-[14px]">${icons[index] || 'bolt'}</span></div>
+                    <div class="flex-1"><p class="text-xs font-semibold text-white mb-0.5">${titles[index] || `Action ${index + 1}`}</p><p class="text-[10px] text-gray-400 leading-tight">${action}</p></div>
+                </div>
+            `).join('');
+            
+            // Re-bind click events
+            document.querySelectorAll('.ai-action-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const iconSpan = this.querySelector('.action-icon');
+                    const title = this.querySelector('p.font-semibold').innerText;
+                    if (iconSpan.innerText !== 'check_circle') {
+                        iconSpan.innerText = 'check_circle';
+                        iconSpan.className = 'action-icon material-symbols-outlined text-green-400 text-[14px]';
+                        this.classList.add('opacity-60', 'border-green-500/30', 'bg-green-900/10');
+                        showToast(`Deployed: ${title}`, 'success');
+                    }
+                });
+            });
+        }
+        renderActions();
+
+        async function sendChatMessage() {
+            const chatInput = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('chat-send-btn');
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            addAiMessage('Operator', message, 'user');
+            chatHistory.push({ role: 'user', content: message });
+            chatInput.value = '';
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = `<span class="material-symbols-outlined text-base animate-spin">refresh</span> Sending`;
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message,
+                        city_data: getCurrentPayload(),
+                        history: chatHistory
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                chatHistory.push({ role: 'assistant', content: data.reply });
+                document.getElementById('ai-live-status').innerText = `Chat updated via ${data.source.toUpperCase()}`;
+                document.getElementById('model-source').innerText = `Model: ${data.model} • ${data.source.toUpperCase()}`;
+                document.getElementById('ai-live-solution').innerText = data.quick_actions[0];
+                document.getElementById('ai-criticality').innerText = data.criticality;
+                addAiMessage('UrbanPulse AI', data.reply, data.criticality === 'High (Red Zone)' ? 'critical' : 'neutral');
+                renderActions(data.quick_actions);
+                maybeRaiseAutoAlert(getCurrentPayload(), data.criticality === 'High (Red Zone)');
+            } catch (error) {
+                addAiMessage('System Notice', 'Chat request failed. The AI assistant is still available through safe fallback logic.', 'critical');
+                showToast(`Chat connection issue: ${error.message}`, 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = `<span class="material-symbols-outlined text-base">send</span> Send`;
+            }
+        }
+
+        let activeTab = 'overview';
+        let activeMetric = 'avg_flow';
+        const metricMeta = {
+            avg_flow: { label: 'Avg Flow', color: '#4fd1ff' },
+            density: { label: 'Density', color: '#f59e0b' },
+            aqi: { label: 'AQI', color: '#ef4444' },
+            pm25: { label: 'PM2.5', color: '#fb7185' }
+        };
+        const districtEls = {
+            alatau: document.getElementById('district-alatau'),
+            auezov: document.getElementById('district-auezov'),
+            almaly: document.getElementById('district-almaly'),
+            bostandyk: document.getElementById('district-bostandyk'),
+            medeu: document.getElementById('district-medeu'),
+            nauryzbay: document.getElementById('district-nauryzbay'),
+            turksib: document.getElementById('district-turksib')
+        };
+        const zoneProfiles = {
+            overview: {
+                density: { area: 'Almaly District', flow: '128.7k / hr', intensities: { alatau: 0.38, auezov: 0.55, almaly: 0.88, bostandyk: 0.62, medeu: 0.26, nauryzbay: 0.3, turksib: 0.48 }, clouds: [[470,260,165,'red'],[620,230,115,'amber'],[275,345,118,'blue']] },
+                avg_flow: { area: 'Auezov District', flow: '95.4k / hr', intensities: { alatau: 0.32, auezov: 0.82, almaly: 0.68, bostandyk: 0.44, medeu: 0.22, nauryzbay: 0.55, turksib: 0.34 }, clouds: [[330,280,160,'blue'],[455,260,118,'green'],[260,385,108,'amber']] },
+                aqi: { area: 'Medeu Slope Belt', flow: 'Air watch active', intensities: { alatau: 0.25, auezov: 0.42, almaly: 0.58, bostandyk: 0.66, medeu: 0.84, nauryzbay: 0.2, turksib: 0.54 }, clouds: [[640,208,176,'red'],[555,252,128,'amber'],[470,315,112,'blue']] },
+                pm25: { area: 'Turksib Corridor', flow: 'Particulate watch', intensities: { alatau: 0.34, auezov: 0.46, almaly: 0.6, bostandyk: 0.42, medeu: 0.28, nauryzbay: 0.31, turksib: 0.9 }, clouds: [[620,355,188,'red'],[515,322,138,'amber'],[245,348,108,'blue']] }
+            },
+            traffic: {
+                density: { area: 'Central Mobility Ring', flow: '151.1k / hr', intensities: { alatau: 0.44, auezov: 0.62, almaly: 0.86, bostandyk: 0.68, medeu: 0.3, nauryzbay: 0.34, turksib: 0.74 }, clouds: [[468,258,180,'red'],[622,336,148,'amber'],[250,320,118,'blue']] },
+                avg_flow: { area: 'West Flow Sector', flow: '84.3k / hr', intensities: { alatau: 0.36, auezov: 0.8, almaly: 0.58, bostandyk: 0.4, medeu: 0.18, nauryzbay: 0.62, turksib: 0.33 }, clouds: [[332,282,170,'blue'],[272,392,118,'green'],[468,252,112,'amber']] },
+                aqi: { area: 'Transit Emission Belt', flow: 'Mixed mobility', intensities: { alatau: 0.3, auezov: 0.48, almaly: 0.66, bostandyk: 0.52, medeu: 0.24, nauryzbay: 0.27, turksib: 0.88 }, clouds: [[625,356,182,'red'],[525,292,132,'amber'],[428,258,98,'blue']] },
+                pm25: { area: 'Industrial East Zone', flow: 'Dust spike watch', intensities: { alatau: 0.55, auezov: 0.42, almaly: 0.58, bostandyk: 0.35, medeu: 0.16, nauryzbay: 0.3, turksib: 0.94 }, clouds: [[640,362,205,'red'],[230,315,155,'amber'],[500,310,126,'blue']] }
+            },
+            ecology: {
+                density: { area: 'Green Buffer Zone', flow: 'Eco mobility low', intensities: { alatau: 0.24, auezov: 0.36, almaly: 0.45, bostandyk: 0.58, medeu: 0.74, nauryzbay: 0.28, turksib: 0.32 }, clouds: [[605,214,160,'green'],[680,182,122,'blue'],[452,286,104,'amber']] },
+                avg_flow: { area: 'Mountain Air Channel', flow: 'Ventilation path', intensities: { alatau: 0.2, auezov: 0.33, almaly: 0.5, bostandyk: 0.72, medeu: 0.82, nauryzbay: 0.26, turksib: 0.3 }, clouds: [[662,186,172,'blue'],[585,226,136,'green'],[425,280,98,'amber']] },
+                aqi: { area: 'Pollution Concentration Zone', flow: 'AQI emergency', intensities: { alatau: 0.35, auezov: 0.58, almaly: 0.7, bostandyk: 0.5, medeu: 0.22, nauryzbay: 0.28, turksib: 0.93 }, clouds: [[632,350,196,'red'],[500,282,142,'amber'],[312,320,112,'blue']] },
+                pm25: { area: 'Fine Particulate Spread', flow: 'PM2.5 plume', intensities: { alatau: 0.42, auezov: 0.56, almaly: 0.68, bostandyk: 0.46, medeu: 0.2, nauryzbay: 0.32, turksib: 0.96 }, clouds: [[640,358,205,'red'],[530,316,148,'amber'],[228,334,118,'blue']] }
+            }
+        };
+
+        function mixColor(base, target, amount) {
+            const hexToRgb = (hex) => hex.replace('#', '').match(/.{1,2}/g).map((part) => parseInt(part, 16));
+            const [r1, g1, b1] = hexToRgb(base);
+            const [r2, g2, b2] = hexToRgb(target);
+            const mix = (a, b) => Math.round(a + (b - a) * amount);
+            return `rgb(${mix(r1, r2)}, ${mix(g1, g2)}, ${mix(b1, b2)})`;
+        }
+
+        function updateCityMap(tabName = activeTab, metric = activeMetric) {
+            const profileGroup = zoneProfiles[tabName] || zoneProfiles.overview;
+            const profile = profileGroup[metric] || profileGroup.density;
+            const baseColor = '#202c49';
+            Object.entries(districtEls).forEach(([name, element]) => {
+                const intensity = profile.intensities[name] || 0.12;
+                const targetColor = intensity > 0.78 ? '#ef4444' : intensity > 0.58 ? '#f59e0b' : intensity > 0.4 ? '#33d17a' : '#4fd1ff';
+                element.style.fill = mixColor(baseColor, targetColor, intensity);
+                element.style.opacity = `${0.42 + intensity * 0.58}`;
+            });
+            const pulsePrimary = document.getElementById('pulse-primary');
+            const pulseSecondary = document.getElementById('pulse-secondary');
+            const pulseThird = document.getElementById('pulse-third');
+            const cloudPrimary = document.getElementById('cloud-primary');
+            const cloudSecondary = document.getElementById('cloud-secondary');
+            const cloudThird = document.getElementById('cloud-third');
+            const anchors = {
+                alatau: [238, 185],
+                auezov: [318, 272],
+                almaly: [458, 258],
+                bostandyk: [415, 168],
+                medeu: [632, 222],
+                nauryzbay: [300, 388],
+                turksib: [588, 372]
+            };
+            [pulsePrimary, pulseSecondary, pulseThird].forEach((pulse, index) => {
+                const cloud = profile.clouds[index];
+                pulse.setAttribute('cx', cloud[0]);
+                pulse.setAttribute('cy', cloud[1]);
+            });
+            pulsePrimary.setAttribute('fill', metricMeta[metric].color);
+            pulseSecondary.setAttribute('fill', '#ffc857');
+            pulseThird.setAttribute('fill', '#4fd1ff');
+            [cloudPrimary, cloudSecondary, cloudThird].forEach((cloudNode, index) => {
+                const cloud = profile.clouds[index];
+                cloudNode.setAttribute('cx', cloud[0]);
+                cloudNode.setAttribute('cy', cloud[1]);
+                cloudNode.setAttribute('r', cloud[2]);
+                const gradient = cloud[3] === 'red' ? 'url(#hotRed)' : cloud[3] === 'amber' ? 'url(#hotAmber)' : cloud[3] === 'green' ? 'url(#hotGreen)' : 'url(#hotBlue)';
+                cloudNode.setAttribute('fill', gradient);
+            });
+            document.getElementById('map-zone-text').innerText = `Active Incident Zone: ${profile.area}`;
+            document.getElementById('current-area').innerText = profile.area;
+            document.getElementById('population-flow').innerText = profile.flow;
+            document.getElementById('map-metric-badge').innerText = `${tabName.toUpperCase()} • ${metricMeta[metric].label.toUpperCase()}`;
+        }
+
+        const chartContext = document.getElementById('kpi-chart').getContext('2d');
+        const kpiChart = new Chart(chartContext, {
+            type: 'line',
+            data: {
+                labels: chartSeries.overview.labels,
+                datasets: [{
+                    label: metricMeta.avg_flow.label,
+                    data: chartSeries.overview.avg_flow,
+                    borderColor: metricMeta.avg_flow.color,
+                    backgroundColor: 'rgba(79, 209, 255, 0.16)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 3,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: 'rgba(148, 163, 184, 0.08)' }
+                    },
+                    y: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: 'rgba(148, 163, 184, 0.08)' }
+                    }
+                }
+            }
+        });
+
+        const mapChartContext = document.getElementById('map-metric-chart').getContext('2d');
+        const mapMetricChart = new Chart(mapChartContext, {
+            type: 'line',
+            data: {
+                labels: chartSeries.overview.labels,
+                datasets: [{
+                    label: metricMeta.avg_flow.label,
+                    data: chartSeries.overview.avg_flow,
+                    borderColor: metricMeta.avg_flow.color,
+                    backgroundColor: 'rgba(79, 209, 255, 0.16)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: metricMeta.avg_flow.color
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { color: '#dae2fd', boxWidth: 12 }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: 'rgba(148, 163, 184, 0.08)' }
+                    },
+                    y: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: 'rgba(148, 163, 184, 0.08)' }
+                    }
+                }
+            }
+        });
+
+        function updateChart(tabName = activeTab, metric = activeMetric) {
+            const series = chartSeries[tabName] || chartSeries.overview;
+            const meta = metricMeta[metric];
+            kpiChart.data.labels = series.labels;
+            kpiChart.data.datasets[0].label = meta.label;
+            kpiChart.data.datasets[0].data = series[metric];
+            kpiChart.data.datasets[0].borderColor = meta.color;
+            kpiChart.data.datasets[0].backgroundColor = `${meta.color}22`;
+            kpiChart.update();
+        }
+
+        function openMapChart(metric, titleText = null) {
+            const fallbackSeries = fallbackChartSeries[activeTab] || fallbackChartSeries.overview;
+            const series = (chartSeries[activeTab] && chartSeries[activeTab].labels.length) ? chartSeries[activeTab] : fallbackSeries;
+            const meta = metricMeta[metric];
+            document.getElementById('map-chart-shell').classList.remove('hidden');
+            document.getElementById('map-chart-title').innerText = titleText || `${meta.label} Trend • Live CSV`;
+            document.getElementById('map-heatmap').classList.add('hidden');
+            document.getElementById('map-alert-zone').classList.add('hidden');
+            mapMetricChart.data.labels = series.labels;
+            mapMetricChart.data.datasets[0].label = `${meta.label} • ${activeTab.toUpperCase()}`;
+            mapMetricChart.data.datasets[0].data = series[metric];
+            mapMetricChart.data.datasets[0].borderColor = meta.color;
+            mapMetricChart.data.datasets[0].backgroundColor = `${meta.color}22`;
+            mapMetricChart.data.datasets[0].pointBackgroundColor = meta.color;
+            mapMetricChart.update();
+        }
+
+        function closeMapChart() {
+            document.getElementById('map-chart-shell').classList.add('hidden');
+            document.getElementById('map-heatmap').classList.remove('hidden');
+            document.getElementById('map-alert-zone').classList.remove('hidden');
+            document.querySelectorAll('#kpi-container > div').forEach((card) => card.classList.remove('metric-card-active'));
+        }
+
+        document.querySelectorAll('.chart-chip').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.chart-chip').forEach(chip => chip.classList.remove('active'));
+                button.classList.add('active');
+                activeMetric = button.dataset.metric;
+                updateChart(activeTab, activeMetric);
+                showToast(`Graph updated: ${metricMeta[activeMetric].label}`, 'info');
+            });
+        });
+
+        ['density', 'speed', 'aqi', 'pm'].forEach((key) => {
+            const metricMap = { density: 'density', speed: 'avg_flow', aqi: 'aqi', pm: 'pm25' };
+            const card = document.getElementById(`card-${key}`);
+            card.addEventListener('click', () => {
+                activeMetric = metricMap[key];
+                document.querySelectorAll('.chart-chip').forEach(chip => {
+                    chip.classList.toggle('active', chip.dataset.metric === activeMetric);
+                });
+                document.querySelectorAll('#kpi-container > div').forEach((item) => item.classList.remove('metric-card-active'));
+                card.classList.add('metric-card-active');
+                updateChart(activeTab, activeMetric);
+                closeMapChart();
+                updateCityMap(activeTab, activeMetric);
+                showToast(`Map updated: ${metricMeta[activeMetric].label}`, 'info');
+            });
+        });
+
+        document.getElementById('close-map-chart').addEventListener('click', closeMapChart);
+
+        document.querySelectorAll('[data-setting-switch]').forEach((toggle) => {
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('active');
+                const settingName = toggle.dataset.settingSwitch === 'alerts' ? 'AI Auto Alerts' : 'Privacy Masking';
+                if (toggle.dataset.settingSwitch === 'alerts' && toggle.classList.contains('active')) {
+                    showToast('AI Auto Alerts enabled', 'alert', 'AI Auto Alerts enabled');
+                } else {
+                    showToast(`${settingName} ${toggle.classList.contains('active') ? 'enabled' : 'disabled'}`, 'info');
+                }
+            });
+        });
+
+        const dashboardContent = document.getElementById('dashboard-content');
+        const settingsPage = document.getElementById('settings-page');
+        const languageMap = { en: 'English', ru: 'Русский', kz: 'Қазақша' };
+        const accentMap = { '#006de6': 'Command Blue', '#22c55e': 'Emerald', '#f59e0b': 'Amber', '#ef4444': 'Alert Red' };
+
+        document.getElementById('settings-language').addEventListener('change', (event) => {
+            document.getElementById('preview-language').innerText = languageMap[event.target.value];
+        });
+
+        document.getElementById('settings-operator').addEventListener('input', (event) => {
+            document.getElementById('preview-operator').innerText = event.target.value || 'Admin Command';
+            document.getElementById('account-name').innerText = event.target.value || 'Admin Command';
+        });
+
+        document.querySelectorAll('.accent-swatch').forEach((swatch) => {
+            swatch.addEventListener('click', () => {
+                document.querySelectorAll('.accent-swatch').forEach((item) => item.className = item.className.replace('border-2', 'border').replace('border-white/30', 'border-white/20'));
+                swatch.classList.remove('border');
+                swatch.classList.add('border-2', 'border-white/30');
+                document.documentElement.style.setProperty('--accent-live', swatch.dataset.color);
+                document.getElementById('preview-accent').style.backgroundColor = swatch.dataset.color;
+                document.getElementById('preview-accent-text').innerText = accentMap[swatch.dataset.color];
+            });
+        });
+
+        document.getElementById('settings-notify-toggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            if (this.classList.contains('active')) {
+                showToast('AI Auto Alerts enabled', 'alert', 'AI Auto Alerts enabled');
+            }
+        });
+
+        document.getElementById('settings-compact-toggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            dashboardContent.classList.toggle('gap-4');
+        });
+
+        document.getElementById('save-settings-btn').addEventListener('click', () => {
+            const theme = document.getElementById('settings-theme').value;
+            if (theme === 'emerald') {
+                document.body.style.backgroundColor = '#081a14';
+            } else if (theme === 'marine') {
+                document.body.style.backgroundColor = '#0b1326';
+            } else {
+                document.body.style.backgroundColor = '#111827';
+            }
+            showToast('Settings saved for this dashboard session.', 'success');
+        });
+
+        updateCityMap(activeTab, activeMetric);
+        refreshDashboardData();
+        document.getElementById('chat-send-btn').addEventListener('click', sendChatMessage);
+        document.getElementById('chat-input').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        });
+        setInterval(() => {
+            refreshDashboardData(false);
+        }, 30000);
+        setInterval(() => {
+            const tabName = activeTab.toUpperCase();
+            document.getElementById('ai-live-status').innerText = `Watching ${tabName} signals in real time`;
+            document.getElementById('ai-live-solution').innerText = `AI is tracking ${metricMeta[activeMetric].label} and preparing next-best operational guidance.`;
+        }, 5000);
+
+        // --- EXECUTE BUTTON LOGIC ---
+        const executeBtn = document.getElementById('execute-btn');
+        function resetExecuteBtn() {
+            executeBtn.innerHTML = `<span class="material-symbols-outlined text-base">rocket_launch</span> Analyze With AI`;
+            executeBtn.className = "mt-4 w-full py-3 bg-primary-container text-white font-bold rounded-xl shadow-[0_0_15px_rgba(0,109,230,0.4)] hover:bg-blue-500 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-blue-400/50";
+            executeBtn.classList.remove('executed');
+        }
+
+        executeBtn.addEventListener('click', async function() {
+            const payload = getCurrentPayload();
+
+            this.innerHTML = `<span class="material-symbols-outlined text-base animate-spin">refresh</span> Processing via AI...`;
+            this.classList.add('opacity-80');
+            this.disabled = true;
+
+            document.getElementById('val-density').innerHTML = `${payload.density}%`;
+            document.getElementById('val-speed').innerHTML = `${payload.avg_speed} <span class="text-lg font-normal opacity-50">km/h</span>`;
+            document.getElementById('val-aqi').innerHTML = `${payload.aqi}`;
+            document.getElementById('val-pm').innerHTML = `${payload.pm2_5} <span class="text-lg font-normal opacity-50">µg/m³</span>`;
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const result = data.result;
+
+                document.getElementById('ai-desc').innerText = result.what_is_happening;
+                document.getElementById('ai-criticality').innerText = result.criticality;
+                document.getElementById('model-source').innerText = `Model: ${data.model} • ${data.source.toUpperCase()}`;
+                document.getElementById('ai-live-status').innerText = 'AI response updated just now';
+                document.getElementById('ai-live-solution').innerText = result.recommended_actions[0];
+                addAiMessage('AI Monitor', result.what_is_happening, result.criticality === 'High (Red Zone)' ? 'critical' : 'neutral');
+                addAiMessage('AI Solution', result.recommended_actions.join(' • '), 'solution');
+                renderActions(result.recommended_actions);
+                maybeRaiseAutoAlert(payload, true);
+                activeTab = payload.category === 'Traffic' ? 'traffic' : payload.category === 'Ecology' ? 'ecology' : 'overview';
+                updateChart(activeTab, activeMetric);
+                updateCityMap(activeTab, activeMetric);
+
+                if (result.criticality === 'High (Red Zone)') {
+                    document.getElementById('ai-alert-title').innerText = 'Immediate Attention';
+                    document.getElementById('ai-alert-title').className = 'text-[10px] font-bold text-error uppercase tracking-widest';
+                    document.getElementById('ai-alert-icon').innerText = 'warning';
+                    document.getElementById('ai-alert-icon').className = 'material-symbols-outlined text-error text-lg animate-pulse';
+                    document.getElementById('ai-criticality-bg').className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-error-container/80 rounded border border-error/30';
+                    document.getElementById('ai-alert-box').className = 'bg-error-container/10 border border-error-container/50 rounded-xl p-4 mb-6 bento-glow-red relative overflow-hidden';
+                    document.getElementById('ai-alert-bar').className = 'absolute top-0 left-0 w-1 h-full bg-error-container';
+                    document.getElementById('map-heatmap').style.background = 'radial-gradient(circle, rgba(222, 33, 28, 0.4) 0%, rgba(222, 33, 28, 0) 70%)';
+                    document.getElementById('map-zone-text').innerText = 'Active Incident Zone: Sector A';
+                    document.getElementById('map-dot').className = 'w-2 h-2 rounded-full bg-error-container animate-ping';
+                    document.getElementById('map-alert-zone').className = 'glass-panel px-4 py-2 rounded-lg flex items-center gap-3 border border-error/20';
+                    document.getElementById('global-status').innerText = 'Status: Warning';
+                    document.getElementById('global-status').className = 'text-xs font-semibold text-tertiary-container';
+                    document.getElementById('global-status-dot').className = 'w-1.5 h-1.5 bg-tertiary-container rounded-full animate-pulse';
+                    document.getElementById('system-alert-text').innerText = 'AI detected a high-severity incident. Immediate response is recommended.';
+                } else if (result.criticality === 'Medium (Yellow Zone)') {
+                    document.getElementById('ai-alert-title').innerText = 'Elevated Monitoring';
+                    document.getElementById('ai-alert-title').className = 'text-[10px] font-bold text-yellow-300 uppercase tracking-widest';
+                    document.getElementById('ai-alert-icon').innerText = 'monitoring';
+                    document.getElementById('ai-alert-icon').className = 'material-symbols-outlined text-yellow-300 text-lg';
+                    document.getElementById('ai-criticality-bg').className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-500/20 rounded border border-yellow-400/30';
+                    document.getElementById('ai-alert-box').className = 'bg-yellow-500/10 border border-yellow-400/30 rounded-xl p-4 mb-6 relative overflow-hidden';
+                    document.getElementById('ai-alert-bar').className = 'absolute top-0 left-0 w-1 h-full bg-yellow-400';
+                    document.getElementById('map-heatmap').style.background = 'radial-gradient(circle, rgba(250, 204, 21, 0.35) 0%, rgba(250, 204, 21, 0) 70%)';
+                    document.getElementById('map-zone-text').innerText = 'Watch Zone: Sector A';
+                    document.getElementById('map-dot').className = 'w-2 h-2 rounded-full bg-yellow-400';
+                    document.getElementById('map-alert-zone').className = 'glass-panel px-4 py-2 rounded-lg flex items-center gap-3 border border-yellow-400/20';
+                    document.getElementById('global-status').innerText = 'Status: Elevated';
+                    document.getElementById('global-status').className = 'text-xs font-semibold text-yellow-300';
+                    document.getElementById('global-status-dot').className = 'w-1.5 h-1.5 bg-yellow-400 rounded-full';
+                    document.getElementById('system-alert-text').innerText = 'AI is monitoring an unstable condition and preparing preventive actions.';
+                } else {
+                    document.getElementById('ai-alert-title').innerText = 'Stable Conditions';
+                    document.getElementById('ai-alert-title').className = 'text-[10px] font-bold text-green-300 uppercase tracking-widest';
+                    document.getElementById('ai-alert-icon').innerText = 'check_circle';
+                    document.getElementById('ai-alert-icon').className = 'material-symbols-outlined text-green-300 text-lg';
+                    document.getElementById('ai-criticality-bg').className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-green-500/20 rounded border border-green-400/30';
+                    document.getElementById('ai-alert-box').className = 'bg-green-500/10 border border-green-400/30 rounded-xl p-4 mb-6 relative overflow-hidden';
+                    document.getElementById('ai-alert-bar').className = 'absolute top-0 left-0 w-1 h-full bg-green-400';
+                    document.getElementById('map-heatmap').style.background = 'radial-gradient(circle, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0) 70%)';
+                    document.getElementById('map-zone-text').innerText = 'Sector A: Normalized';
+                    document.getElementById('map-dot').className = 'w-2 h-2 rounded-full bg-green-400';
+                    document.getElementById('map-alert-zone').className = 'glass-panel px-4 py-2 rounded-lg flex items-center gap-3 border border-green-400/20';
+                    document.getElementById('global-status').innerText = 'Status: Optimal';
+                    document.getElementById('global-status').className = 'text-xs font-semibold text-green-300';
+                    document.getElementById('global-status-dot').className = 'w-1.5 h-1.5 bg-green-400 rounded-full';
+                    document.getElementById('system-alert-text').innerText = 'AI reports stable conditions. Routine monitoring remains active.';
+                }
+
+                document.getElementById('current-area').innerText = payload.category === 'Ecology' ? 'Environmental Sector' : payload.category === 'Traffic' ? 'Financial District' : 'Central Operations';
+                document.getElementById('population-flow').innerText = payload.category === 'Ecology' ? 'Air response network' : payload.category === 'Traffic' ? '142.4k / hr' : 'Mixed system load';
+                showToast(`AI analysis complete: ${result.criticality}`, 'success');
+            } catch (error) {
+                document.getElementById('ai-desc').innerText = 'Backend connection failed. Start FastAPI and verify the /analyze endpoint.';
+                document.getElementById('model-source').innerText = 'Model: unavailable';
+                document.getElementById('ai-live-status').innerText = 'Fallback monitoring active';
+                document.getElementById('ai-live-solution').innerText = 'AI server unavailable. Dashboard is using safe recovery guidance.';
+                addAiMessage('System Notice', 'AI backend is unavailable. Switching to safe fallback guidance.', 'critical');
+                renderActions([
+                    'Restart the backend service and verify connectivity',
+                    'Check model configuration and API credentials',
+                    'Keep the dashboard in monitored mode until recovery'
+                ]);
+                showToast(`Connection issue: ${error.message}`, 'error');
+            } finally {
+                resetExecuteBtn();
+            }
+        });
+
+        // --- TAB SWITCHING LOGIC ---
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 1. Change active tab styling
+                navItems.forEach(nav => {
+                    nav.classList.remove('border-[#006de6]', 'text-[#adc6ff]');
+                    nav.classList.add('border-transparent', 'text-[#c2c6d8]');
+                });
+                this.classList.remove('border-transparent', 'text-[#c2c6d8]');
+                this.classList.add('border-[#006de6]', 'text-[#adc6ff]');
+
+                const tabName = this.getAttribute('data-tab');
+                const data = tabData[tabName];
+                if(!data) return;
+                activeTab = tabName === 'settings' ? 'overview' : tabName;
+
+                if (tabName === 'settings') {
+                    dashboardContent.classList.add('hidden');
+                    settingsPage.classList.remove('hidden');
+                    closeMapChart();
+                    showToast('Settings workspace opened.', 'info');
+                    return;
+                }
+
+                settingsPage.classList.add('hidden');
+                dashboardContent.classList.remove('hidden');
+
+                document.getElementById('input-category').value = data.category || 'Overview';
+                document.getElementById('input-density').value = data.density.raw ?? 0;
+                document.getElementById('input-speed').value = data.speed.raw ?? 0;
+                document.getElementById('input-aqi').value = data.aqi.raw ?? 0;
+                document.getElementById('input-pm').value = data.pm.raw ?? 0;
+                updateChart(activeTab, activeMetric);
+                updateCityMap(activeTab, activeMetric);
+                closeMapChart();
+
+                // 2. Reset AI panel & map for demo purposes
+                renderActions([
+                    'Awaiting AI analysis for current tab selection.',
+                    'Review the updated KPI values before execution.',
+                    'Run the assistant to generate live recommendations.'
+                ]);
+                resetExecuteBtn();
+                document.getElementById('map-heatmap').style.background = '';
+                document.getElementById('map-zone-text').innerText = "Active Incident Zone: Sector A";
+                document.getElementById('map-dot').className = "w-2 h-2 rounded-full bg-error-container animate-ping";
+                document.getElementById('map-alert-zone').className = "glass-panel px-4 py-2 rounded-lg flex items-center gap-3 border border-error/20";
+                document.getElementById('global-status').innerText = "Status: Warning";
+                document.getElementById('model-source').innerText = 'Model: waiting';
+                document.getElementById('ai-desc').innerText = 'Dashboard context updated. Run AI analysis to generate a fresh incident summary.';
+                document.getElementById('ai-live-status').innerText = `Context switched to ${tabName.toUpperCase()}`;
+                document.getElementById('ai-live-solution').innerText = 'AI is comparing the latest city signals and preparing the next response.';
+                addAiMessage('Context Update', `Dashboard switched to ${tabName.toUpperCase()} data stream.`, 'neutral');
+                showToast(`Data Source Switched to: ${tabName.toUpperCase()}`, 'info');
+
+                // 3. Update 4 KPI Cards dynamically
+                ['density', 'speed', 'aqi', 'pm'].forEach(key => {
+                    const info = data[key];
+                    const card = document.getElementById(`card-${key}`);
+                    const iconBg = document.getElementById(`icon-bg-${key}`);
+                    const valEl = document.getElementById(`val-${key}`);
+                    const descEl = document.getElementById(`desc-${key}`);
+
+                    // Remove animation class to restart it
+                    valEl.classList.remove('kpi-fade');
+                    void valEl.offsetWidth; // trigger reflow
+                    valEl.classList.add('kpi-fade');
+
+                    // Update values
+                    valEl.innerHTML = info.val;
+                    descEl.innerHTML = info.desc;
+                    iconBg.innerHTML = info.icon;
+                    
+                    // Note: In Tailwind, we can't easily concatenate dynamic class strings unless they exist in the bundle.
+                    // Because I used explicit classes in the dictionary above, they will work.
+                    valEl.className = `text-4xl font-bold mb-1 transition-colors kpi-fade ${info.color === 'text-yellow-400' ? 'text-white' : info.color}`;
+                    descEl.className = `text-sm font-medium uppercase text-[10px] tracking-widest transition-colors ${info.color}`;
+                    iconBg.className = `material-symbols-outlined p-2 rounded-lg transition-colors ${info.color} ${info.bg}`;
+                    
+                    card.className = `bg-surface-container-low p-6 rounded-xl border transition-all duration-500 cursor-default ${info.border} ${info.glow ? 'bento-glow-red' : ''}`;
+                });
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
