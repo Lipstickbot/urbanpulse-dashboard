@@ -28,6 +28,7 @@ import logging
 import os
 import re
 import csv
+import warnings
 from pathlib import Path
 from typing import Literal
 
@@ -171,16 +172,32 @@ def load_local_lora_model() -> None:
         return
 
     try:
+        tokenizer_source = str(adapter_path) if (adapter_path / "tokenizer.json").exists() else LOCAL_BASE_MODEL
+        logger.info("Loading local tokenizer: %s", tokenizer_source)
+        local_tokenizer = AutoTokenizer.from_pretrained(tokenizer_source, trust_remote_code=False)
+        if local_tokenizer.pad_token is None and local_tokenizer.eos_token is not None:
+            local_tokenizer.pad_token = local_tokenizer.eos_token
+
         logger.info("Loading local base model: %s", LOCAL_BASE_MODEL)
-        local_tokenizer = AutoTokenizer.from_pretrained(LOCAL_BASE_MODEL, trust_remote_code=True)
         base_model = AutoModelForCausalLM.from_pretrained(
             LOCAL_BASE_MODEL,
-            trust_remote_code=True,
-            device_map="auto",
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+            trust_remote_code=False,
+            low_cpu_mem_usage=True,
+            device_map="cpu" if not torch.cuda.is_available() else None,
+            dtype=torch.float16 if torch.cuda.is_available() else torch.bfloat16,
         )
         logger.info("Loading local LoRA adapter from: %s", adapter_path)
-        local_model = PeftModel.from_pretrained(base_model, str(adapter_path))
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=".*copying from a non-meta parameter in the checkpoint to a meta parameter.*",
+            )
+            local_model = PeftModel.from_pretrained(
+                base_model,
+                str(adapter_path),
+                low_cpu_mem_usage=False,
+                is_trainable=False,
+            )
         local_model.eval()
     except Exception as exc:
         local_model = None
@@ -325,25 +342,63 @@ def fallback_chat(request: AIChatRequest) -> AIChatResponse:
     incident = fallback_analysis(request.city_data)
     user_text = request.message.lower().strip()
     category = request.city_data.category
+    density = request.city_data.density
+    avg_speed = request.city_data.avg_speed
+    aqi = request.city_data.aqi
+    pm25 = request.city_data.pm2_5
+    lang = detect_language(user_text)
 
-    if any(token in user_text for token in ["action", "do", "what now", "что делать", "что делать?", "нестеу", "help"]):
-        reply = (
-            f"For {category}, the current state is {incident.criticality}. "
-            f"{incident.what_is_happening} First priority: {incident.recommended_actions[0]}."
+    def tr(en: str, ru: str, kz: str) -> str:
+        return {"en": en, "ru": ru, "kz": kz}[lang]
+
+    if any(token in user_text for token in ["hello", "hi", "hey", "привет", "салам", "здравствуйте"]):
+        reply = tr(
+            f"I am UrbanPulse AI Copilot. Ask me about {category} conditions, reasons for alerts, district impact, or the next operational step. The current status is {incident.criticality}.",
+            f"Я UrbanPulse AI Copilot. Можете спрашивать меня про состояние {category}, причины тревог, влияние на районы и следующие действия. Текущий статус: {incident.criticality}.",
+            f"Мен UrbanPulse AI Copilotпын. {category} жағдайы, дабыл себептері, аудандарға әсері және келесі әрекет туралы сұрай аласыз. Қазіргі мәртебе: {incident.criticality}."
         )
-    elif any(token in user_text for token in ["why", "почему", "неге", "reason"]):
-        reply = (
-            f"The alert level is {incident.criticality} because density is {request.city_data.density}, "
-            f"average speed is {request.city_data.avg_speed}, AQI is {request.city_data.aqi}, "
-            f"and PM2.5 is {request.city_data.pm2_5}."
+    elif any(token in user_text for token in ["status", "summary", "what is happening", "situation", "что", "сводка"]):
+        reply = tr(
+            f"Current {category} status: {incident.what_is_happening} Density is {density:.0f}, average speed is {avg_speed:.0f} km/h, AQI is {aqi:.0f}, and PM2.5 is {pm25:.0f}.",
+            f"Текущая ситуация по {category}: {incident.what_is_happening} Плотность {density:.0f}, средняя скорость {avg_speed:.0f} км/ч, AQI {aqi:.0f}, PM2.5 {pm25:.0f}.",
+            f"{category} бойынша ағымдағы жағдай: {incident.what_is_happening} Тығыздық {density:.0f}, орташа жылдамдық {avg_speed:.0f} км/сағ, AQI {aqi:.0f}, PM2.5 {pm25:.0f}."
         )
-    elif any(token in user_text for token in ["summary", "summarize", "коротко", "brief"]):
-        reply = incident.what_is_happening
+    elif any(token in user_text for token in ["why", "reason", "почему", "неге"]):
+        trigger = (
+            tr("traffic pressure", "транспортная нагрузка", "көлік жүктемесі")
+            if density > 80 or avg_speed < 25
+            else tr("air quality risk", "риск по качеству воздуха", "ауа сапасы қаупі")
+            if aqi > 150 or pm25 > 100
+            else tr("combined moderate stress", "комбинированная умеренная нагрузка", "біріккен орташа жүктеме")
+        )
+        reply = tr(
+            f"The alert level is {incident.criticality} because density={density:.0f}, avg_speed={avg_speed:.0f}, AQI={aqi:.0f}, and PM2.5={pm25:.0f}. The strongest trigger is {trigger}.",
+            f"Уровень тревоги {incident.criticality}, потому что density={density:.0f}, avg_speed={avg_speed:.0f}, AQI={aqi:.0f}, PM2.5={pm25:.0f}. Главный триггер: {trigger}.",
+            f"Дабыл деңгейі {incident.criticality}, себебі density={density:.0f}, avg_speed={avg_speed:.0f}, AQI={aqi:.0f}, PM2.5={pm25:.0f}. Ең негізгі триггер: {trigger}."
+        )
+    elif any(token in user_text for token in ["action", "what should", "do now", "help", "что делать", "нестеу"]):
+        reply = tr(
+            f"Recommended first move: {incident.recommended_actions[0]}. Then {incident.recommended_actions[1].lower()}, and {incident.recommended_actions[2].lower()}.",
+            f"Первое рекомендуемое действие: {incident.recommended_actions[0]}. Затем {incident.recommended_actions[1].lower()} и {incident.recommended_actions[2].lower()}.",
+            f"Бірінші ұсынылатын әрекет: {incident.recommended_actions[0]}. Содан кейін {incident.recommended_actions[1].lower()} және {incident.recommended_actions[2].lower()}."
+        )
+    elif any(token in user_text for token in ["map", "district", "район", "zone", "карта"]):
+        reply = tr(
+            f"The map is showing the {category} hotspot and surrounding risk spread. The active zone should be treated as the primary response area while nearby districts stay under observation.",
+            f"Карта показывает очаг по {category} и распространение риска на соседние зоны. Активную зону нужно считать приоритетной для реагирования, а соседние районы держать под наблюдением.",
+            f"Карта {category} бойынша ошақ пен тәуекелдің көрші аймақтарға таралуын көрсетеді. Белсенді аймақты негізгі әрекет ету аймағы деп қарастыру керек, ал жақын аудандар бақылауда болуы тиіс."
+        )
+    elif any(token in user_text for token in ["dashboard", "panel", "graph", "chart", "дашборд", "график"]):
+        reply = tr(
+            "The dashboard combines KPI cards, a city risk map, trend charts, and AI guidance. You can switch tabs, inspect live metrics, and ask me to explain any signal.",
+            "Дашборд объединяет KPI-карточки, карту городских рисков, графики трендов и AI-подсказки. Вы можете переключать вкладки, смотреть live-метрики и спрашивать меня про любой сигнал.",
+            "Дашборд KPI-карталарын, қала тәуекел картасын, тренд графиктерін және AI кеңестерін біріктіреді. Қойындыларды ауыстырып, live-метрикаларды қарап, кез келген сигнал туралы сұрай аласыз."
+        )
     else:
-        reply = (
-            f"I am monitoring the {category} stream in real time. "
-            f"Current status: {incident.what_is_happening} "
-            f"Recommended next move: {incident.recommended_actions[0]}"
+        reply = tr(
+            f"I am monitoring the {category} stream in real time. {incident.what_is_happening} You can ask me for a summary, the reason for the alert, district impact, or the next recommended action.",
+            f"Я отслеживаю поток {category} в реальном времени. {incident.what_is_happening} Можете спросить краткую сводку, причину тревоги, влияние на районы или следующее рекомендуемое действие.",
+            f"Мен {category} ағынын нақты уақытта бақылап отырмын. {incident.what_is_happening} Қысқаша шолу, дабыл себебі, аудандарға әсері немесе келесі ұсынылатын әрекет туралы сұрай аласыз."
         )
 
     return AIChatResponse(
@@ -353,6 +408,18 @@ def fallback_chat(request: AIChatRequest) -> AIChatResponse:
         source="fallback",
         model=get_active_model(),
     )
+
+
+def detect_language(text: str) -> str:
+    kazakh_markers = ("ә", "қ", "ң", "ғ", "ү", "ұ", "ө", "һ", " і", " ма", " ме", " қай", " неге", " қалай")
+    russian_markers = ("что", "привет", "почему", "район", "карта", "сводка", "как", "где")
+
+    lowered = text.lower()
+    if any(marker in lowered for marker in kazakh_markers):
+        return "kz"
+    if any(marker in lowered for marker in russian_markers) or re.search(r"[а-яё]", lowered):
+        return "ru"
+    return "en"
 
 
 def safe_float(value: str | None, default: float = 0.0) -> float:
@@ -490,7 +557,9 @@ def load_dashboard_data() -> DashboardDataResponse:
 def get_active_model() -> str:
     if local_model is not None:
         return f"local-lora:{Path(LOCAL_LORA_ADAPTER_PATH).name}"
-    return FINE_TUNED_MODEL or OPENAI_MODEL
+    if client is not None:
+        return FINE_TUNED_MODEL or OPENAI_MODEL
+    return "fallback-only"
 
 
 def extract_json_object(text: str) -> str:
@@ -498,6 +567,48 @@ def extract_json_object(text: str) -> str:
     if not match:
         raise ValueError("No JSON object found in model output")
     return match.group(0)
+
+
+def normalize_criticality(value: str) -> str:
+    lowered = str(value).strip().lower()
+    if "high" in lowered or "red" in lowered:
+        return "High (Red Zone)"
+    if "medium" in lowered or "yellow" in lowered:
+        return "Medium (Yellow Zone)"
+    if "low" in lowered or "green" in lowered:
+        return "Low (Green Zone)"
+    return "Medium (Yellow Zone)"
+
+
+def normalize_quick_actions(actions: object, fallback: list[str] | None = None) -> list[str]:
+    fallback_actions = fallback or [
+        "Review live dashboard signals",
+        "Coordinate the nearest response team",
+        "Send an operator notification",
+    ]
+    if not isinstance(actions, list):
+        return fallback_actions
+    cleaned = [str(item).strip() for item in actions if str(item).strip()]
+    if not cleaned:
+        return fallback_actions
+    while len(cleaned) < 3:
+        cleaned.append(fallback_actions[len(cleaned) % len(fallback_actions)])
+    return cleaned[:3]
+
+
+def enforce_city_criticality(city_data: CityDataInput, suggested: str) -> str:
+    if city_data.density > 80 or city_data.aqi > 150:
+        return "High (Red Zone)"
+    if (
+        city_data.density > 55
+        or city_data.avg_speed < 30
+        or city_data.aqi > 100
+        or city_data.pm2_5 > 35
+    ):
+        return "Medium (Yellow Zone)"
+    if suggested in {"High (Red Zone)", "Medium (Yellow Zone)", "Low (Green Zone)"}:
+        return suggested
+    return "Low (Green Zone)"
 
 
 def analyze_with_local_model(payload: CityDataInput) -> AIActionResponse:
@@ -537,7 +648,76 @@ def analyze_with_local_model(payload: CityDataInput) -> AIActionResponse:
     generated_tokens = outputs[0][inputs["input_ids"].shape[1]:]
     generated_text = local_tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
     json_text = extract_json_object(generated_text)
-    return AIActionResponse.model_validate_json(json_text)
+    data = json.loads(json_text)
+    data["criticality"] = enforce_city_criticality(payload, normalize_criticality(data.get("criticality", "")))
+    data["recommended_actions"] = normalize_quick_actions(
+        data.get("recommended_actions"),
+        fallback_analysis(payload).recommended_actions,
+    )
+    return AIActionResponse.model_validate(data)
+
+
+def chat_with_local_model(request: AIChatRequest) -> AIChatResponse:
+    if local_model is None or local_tokenizer is None:
+        raise RuntimeError("Local model is not loaded")
+
+    history_text = "\n".join(
+        f"{item.get('role', 'user')}: {item.get('content', '')}"
+        for item in request.history[-6:]
+        if item.get("content")
+    )
+    prompt = (
+        "You are UrbanPulse AI, a real-time Smart City dashboard copilot. "
+        "Always answer in the same language as the user's message. "
+        "Use a short helpful chat style. "
+        "Return only valid JSON with keys reply, criticality, quick_actions. "
+        "criticality must be one of High (Red Zone), Medium (Yellow Zone), Low (Green Zone). "
+        "quick_actions must contain exactly 3 short actions. "
+        f"City data: category={request.city_data.category}, density={request.city_data.density}, "
+        f"avg_speed={request.city_data.avg_speed}, aqi={request.city_data.aqi}, pm2_5={request.city_data.pm2_5}. "
+        f"Recent history: {history_text or 'none'}. "
+        f"User question: {request.message}"
+    )
+
+    messages = [{"role": "user", "content": prompt}]
+    if hasattr(local_tokenizer, "apply_chat_template"):
+        input_text = local_tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+    else:
+        input_text = prompt
+
+    inputs = local_tokenizer(input_text, return_tensors="pt")
+    model_device = next(local_model.parameters()).device
+    inputs = {key: value.to(model_device) for key, value in inputs.items()}
+
+    with torch.no_grad():
+        outputs = local_model.generate(
+            **inputs,
+            max_new_tokens=260,
+            do_sample=True,
+            temperature=0.35,
+            top_p=0.9,
+            pad_token_id=local_tokenizer.eos_token_id,
+        )
+
+    generated_tokens = outputs[0][inputs["input_ids"].shape[1]:]
+    generated_text = local_tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
+    json_text = extract_json_object(generated_text)
+    data = json.loads(json_text)
+    incident_fallback = fallback_analysis(request.city_data)
+    return AIChatResponse(
+        reply=str(data.get("reply", "")).strip() or incident_fallback.what_is_happening,
+        criticality=enforce_city_criticality(
+            request.city_data,
+            normalize_criticality(data.get("criticality", "")),
+        ),
+        quick_actions=normalize_quick_actions(data.get("quick_actions"), incident_fallback.recommended_actions),
+        source="llm",
+        model=get_active_model(),
+    )
 
 
 def analyze_with_llm(payload: CityDataInput) -> AIActionResponse:
@@ -614,10 +794,12 @@ def chat_with_llm(request: AIChatRequest) -> AIChatResponse:
                 "role": "system",
                 "content": (
                     "You are UrbanPulse AI, a real-time Smart City dashboard copilot. "
-                    "Answer like an operations assistant in a short chat style. "
+                    "You help users understand the dashboard, explain city conditions, answer questions about signals, "
+                    "and suggest practical actions in a short chat style. "
+                    "Always reply in the same language as the user message: Russian, Kazakh, or English. "
                     "Use the provided city metrics. If density > 80 or AQI > 150, criticality must be High (Red Zone). "
                     "Return strict JSON only with reply, criticality, quick_actions. "
-                    "Keep reply under 90 words and make it practical."
+                    "Keep reply under 90 words, be practical, and answer the actual user question."
                 ),
             },
             {
@@ -687,7 +869,7 @@ def analyze(payload: CityDataInput) -> AnalyzeEnvelope:
 @app.post("/chat", response_model=AIChatResponse)
 def chat(request: AIChatRequest) -> AIChatResponse:
     try:
-        return chat_with_llm(request)
+        return chat_with_local_model(request) if local_model is not None else chat_with_llm(request)
     except (
         RateLimitError,
         APITimeoutError,

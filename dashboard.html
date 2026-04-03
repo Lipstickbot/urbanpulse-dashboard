@@ -240,19 +240,19 @@
     <nav class="mt-4 flex-1 space-y-1 px-4" id="main-nav">
         <a class="nav-item active flex items-center gap-4 px-4 py-3 text-[#adc6ff] font-bold border-l-2 border-[#006de6] hover:bg-[#31394d] transition-colors duration-200 cursor-pointer" data-tab="overview">
             <span class="material-symbols-outlined">dashboard</span>
-            <span class="text-sm tracking-tight font-semibold">Overview</span>
+            <span id="nav-overview-label" class="text-sm tracking-tight font-semibold">Overview</span>
         </a>
         <a class="nav-item flex items-center gap-4 px-4 py-3 text-[#c2c6d8] hover:text-[#dae2fd] border-l-2 border-transparent hover:bg-[#31394d] transition-colors duration-200 cursor-pointer" data-tab="traffic">
             <span class="material-symbols-outlined">traffic</span>
-            <span class="text-sm tracking-tight font-semibold">Traffic</span>
+            <span id="nav-traffic-label" class="text-sm tracking-tight font-semibold">Traffic</span>
         </a>
         <a class="nav-item flex items-center gap-4 px-4 py-3 text-[#c2c6d8] hover:text-[#dae2fd] border-l-2 border-transparent hover:bg-[#31394d] transition-colors duration-200 cursor-pointer" data-tab="ecology">
             <span class="material-symbols-outlined">eco</span>
-            <span class="text-sm tracking-tight font-semibold">Ecology</span>
+            <span id="nav-ecology-label" class="text-sm tracking-tight font-semibold">Ecology</span>
         </a>
         <a class="nav-item flex items-center gap-4 px-4 py-3 text-[#c2c6d8] hover:text-[#dae2fd] border-l-2 border-transparent hover:bg-[#31394d] transition-colors duration-200 cursor-pointer" data-tab="settings">
             <span class="material-symbols-outlined">settings</span>
-            <span class="text-sm tracking-tight font-semibold">Settings</span>
+            <span id="nav-settings-label" class="text-sm tracking-tight font-semibold">Settings</span>
         </a>
     </nav>
     <div class="p-4 mt-auto">
@@ -300,37 +300,37 @@
     <div id="dashboard-content" class="mt-16 p-8 grid grid-cols-12 gap-6 flex-1">
         
         <div class="col-span-12 grid grid-cols-4 gap-6" id="kpi-container">
-            <div id="card-density" class="bg-surface-container-low p-6 rounded-xl border border-transparent transition-all duration-500 cursor-default">
+            <div id="card-density" class="bg-surface-container-low p-6 rounded-xl border border-transparent transition-all duration-150 cursor-default">
                 <div class="flex justify-between items-start mb-4">
                     <span id="icon-bg-density" class="material-symbols-outlined text-yellow-400 p-2 bg-yellow-400/10 rounded-lg transition-colors">traffic</span>
-                    <span class="text-xs uppercase tracking-widest text-gray-400">Density</span>
+                    <span id="kpi-label-density" class="text-xs uppercase tracking-widest text-gray-400">Density</span>
                 </div>
                 <h3 id="val-density" class="text-4xl font-bold text-white mb-1">85%</h3>
                 <p id="desc-density" class="text-sm font-medium text-yellow-400 uppercase text-[10px] tracking-widest transition-colors">Traffic Elevated</p>
             </div>
             
-            <div id="card-speed" class="bg-surface-container-low p-6 rounded-xl border border-transparent transition-all duration-500 cursor-default">
+            <div id="card-speed" class="bg-surface-container-low p-6 rounded-xl border border-transparent transition-all duration-150 cursor-default">
                 <div class="flex justify-between items-start mb-4">
                     <span id="icon-bg-speed" class="material-symbols-outlined text-yellow-400 p-2 bg-yellow-400/10 rounded-lg transition-colors">speed</span>
-                    <span class="text-xs uppercase tracking-widest text-gray-400">Avg Flow</span>
+                    <span id="kpi-label-speed" class="text-xs uppercase tracking-widest text-gray-400">Avg Flow</span>
                 </div>
                 <h3 id="val-speed" class="text-4xl font-bold text-white mb-1">24 <span class="text-lg font-normal opacity-50">km/h</span></h3>
                 <p id="desc-speed" class="text-sm font-medium text-yellow-400 uppercase text-[10px] tracking-widest transition-colors">-12% vs normal</p>
             </div>
             
-            <div id="card-aqi" class="bg-surface-container-low p-6 rounded-xl border border-error-container/40 bento-glow-red transition-all duration-500">
+            <div id="card-aqi" class="bg-surface-container-low p-6 rounded-xl border border-error-container/40 bento-glow-red transition-all duration-150">
                 <div class="flex justify-between items-start mb-4">
                     <span id="icon-bg-aqi" class="material-symbols-outlined text-error p-2 bg-error/10 rounded-lg transition-colors">air</span>
-                    <span class="text-xs uppercase tracking-widest text-gray-400">Air Index</span>
+                    <span id="kpi-label-aqi" class="text-xs uppercase tracking-widest text-gray-400">Air Index</span>
                 </div>
                 <h3 id="val-aqi" class="text-4xl font-bold text-error mb-1 transition-colors">215</h3>
                 <p id="desc-aqi" class="text-sm font-medium text-error uppercase text-[10px] tracking-widest transition-colors">Critical AQI</p>
             </div>
             
-            <div id="card-pm" class="bg-surface-container-low p-6 rounded-xl border border-error-container/40 bento-glow-red transition-all duration-500">
+            <div id="card-pm" class="bg-surface-container-low p-6 rounded-xl border border-error-container/40 bento-glow-red transition-all duration-150">
                 <div class="flex justify-between items-start mb-4">
                     <span id="icon-bg-pm" class="material-symbols-outlined text-error p-2 bg-error/10 rounded-lg transition-colors">matter</span>
-                    <span class="text-xs uppercase tracking-widest text-gray-400">Particulates</span>
+                    <span id="kpi-label-pm" class="text-xs uppercase tracking-widest text-gray-400">Particulates</span>
                 </div>
                 <h3 id="val-pm" class="text-4xl font-bold text-error mb-1 transition-colors">185 <span class="text-lg font-normal opacity-50">µg/m³</span></h3>
                 <p id="desc-pm" class="text-sm font-medium text-error uppercase text-[10px] tracking-widest transition-colors">Hazardous PM2.5</p>
@@ -457,97 +457,58 @@
                         <span class="material-symbols-outlined text-white text-lg">smart_toy</span>
                     </div>
                     <div class="flex-1">
-                        <h2 class="text-lg font-bold text-white">AI Incident Assistant</h2>
-                        <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]" id="model-source">Model: waiting</p>
+                        <h2 class="text-lg font-bold text-white">AI City Copilot</h2>
+                        <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]" id="model-source">Model: fallback ready</p>
                     </div>
                 </div>
 
-                <div class="bg-error-container/10 border border-error-container/50 rounded-xl p-4 mb-6 bento-glow-red relative overflow-hidden" id="ai-alert-box">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-error-container" id="ai-alert-bar"></div>
+                <div class="bg-primary-container/8 border border-primary-container/25 rounded-xl p-4 mb-6 relative overflow-hidden" id="ai-alert-box">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-primary-container" id="ai-alert-bar"></div>
                     <div class="flex items-center gap-2 mb-3">
-                        <span class="material-symbols-outlined text-error text-lg animate-pulse" id="ai-alert-icon">warning</span>
-                        <span class="text-[10px] font-bold text-error uppercase tracking-widest" id="ai-alert-title">Immediate Attention</span>
+                        <span class="material-symbols-outlined text-[#60a5fa] text-lg" id="ai-alert-icon">forum</span>
+                        <span class="text-[10px] font-bold text-[#adc6ff] uppercase tracking-widest" id="ai-alert-title">AI Conversation</span>
                     </div>
                     <div class="space-y-3">
-                        <div id="ai-chat-feed" class="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                        <div id="ai-chat-feed" class="space-y-3 max-h-[280px] overflow-y-auto pr-1">
                             <div class="rounded-xl bg-[#0b1222]/55 border border-white/5 p-3">
-                                <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">AI Monitor</p>
-                                <p class="text-sm text-white font-medium leading-tight" id="ai-desc">Severe traffic gridlock at Sector A combined with a critical PM2.5 spike.</p>
+                                <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">AI Welcome</p>
+                                <p class="text-sm text-white font-medium leading-tight" id="ai-desc">Ask me anything about the dashboard, the current city signals, the map, or the next best response.</p>
                             </div>
                             <div class="rounded-xl bg-primary-container/10 border border-primary-container/20 p-3">
-                                <p class="text-[9px] text-[#adc6ff] uppercase font-bold tracking-wider mb-1">AI Solution</p>
-                                <p class="text-sm text-white font-medium leading-tight" id="ai-live-solution">Preparing live response plan from current city signals.</p>
+                                <p class="text-[9px] text-[#adc6ff] uppercase font-bold tracking-wider mb-1">AI Hint</p>
+                                <p class="text-sm text-white font-medium leading-tight" id="ai-live-solution">Try: what is happening, why is it risky, which district is affected, or what should we do now?</p>
                             </div>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <div>
                                 <h4 class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">Criticality</h4>
-                                <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-error-container/80 rounded border border-error/30" id="ai-criticality-bg">
-                                    <span class="text-[10px] font-bold text-white uppercase" id="ai-criticality">High (Red Zone)</span>
+                                <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-container/20 rounded border border-primary-container/30" id="ai-criticality-bg">
+                                    <span class="text-[10px] font-bold text-white uppercase" id="ai-criticality">Chat Ready</span>
                                 </div>
                             </div>
                             <div class="text-right">
                                 <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-1">Live Status</p>
-                                <p class="text-[10px] font-semibold text-[#adc6ff]" id="ai-live-status">Streaming city context</p>
+                                <p class="text-[10px] font-semibold text-[#adc6ff]" id="ai-live-status">Ready for dashboard questions</p>
+                            </div>
+                        </div>
+                        <div class="rounded-xl border border-white/10 bg-[#0b1222]/45 p-3">
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <div>
+                                    <p id="chat-heading" class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">AI Chat</p>
+                                    <p id="chat-subtitle" class="text-[11px] text-gray-400">Ask about risks, reasons, next actions, or district status.</p>
+                                </div>
+                                <span class="text-[10px] px-2 py-1 rounded-full bg-primary-container/15 border border-primary-container/20 text-[#adc6ff]" id="chat-mode-badge">Live Copilot</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <input id="chat-input" type="text" placeholder="Ask the AI what is happening in the city..." class="flex-1 bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
+                                <button id="chat-send-btn" class="px-4 py-2 rounded-lg bg-primary-container text-white text-sm font-semibold border border-blue-400/40 hover:bg-blue-500 transition-all flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-base">send</span>
+                                    <span id="chat-send-label">Send</span>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="rounded-xl border border-white/10 bg-[#0b1222]/55 p-3 mb-5">
-                    <div class="flex items-center justify-between gap-3 mb-3">
-                        <div>
-                            <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">AI Chat</p>
-                            <p class="text-[11px] text-gray-400">Ask about risks, reasons, next actions, or district status.</p>
-                        </div>
-                        <span class="text-[10px] px-2 py-1 rounded-full bg-primary-container/15 border border-primary-container/20 text-[#adc6ff]" id="chat-mode-badge">Live Copilot</span>
-                    </div>
-                    <div class="flex gap-2">
-                        <input id="chat-input" type="text" placeholder="Ask the AI what is happening in the city..." class="flex-1 bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
-                        <button id="chat-send-btn" class="px-4 py-2 rounded-lg bg-primary-container text-white text-sm font-semibold border border-blue-400/40 hover:bg-blue-500 transition-all flex items-center gap-2">
-                            <span class="material-symbols-outlined text-base">send</span>
-                            Send
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mb-5">
-                    <label class="col-span-2">
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">Category</span>
-                        <select id="input-category" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
-                            <option value="Overview">Overview</option>
-                            <option value="Traffic">Traffic</option>
-                            <option value="Ecology">Ecology</option>
-                        </select>
-                    </label>
-                    <label>
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">Density</span>
-                        <input id="input-density" type="number" step="0.1" value="85" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
-                    </label>
-                    <label>
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">Avg Speed</span>
-                        <input id="input-speed" type="number" step="0.1" value="24" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
-                    </label>
-                    <label>
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">AQI</span>
-                        <input id="input-aqi" type="number" step="0.1" value="215" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
-                    </label>
-                    <label>
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">PM2.5</span>
-                        <input id="input-pm" type="number" step="0.1" value="185" class="w-full bg-[#060e20] border border-[#31394d] rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-[#adc6ff] outline-none">
-                    </label>
-                </div>
-
-                <div class="flex-1">
-                    <h4 class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-3 px-1">3. Recommended Actions</h4>
-                    <div class="space-y-2" id="ai-actions-container">
-                        </div>
-                </div>
-
-                <button id="execute-btn" class="mt-4 w-full py-3 bg-primary-container text-white font-bold rounded-xl shadow-[0_0_15px_rgba(0,109,230,0.4)] hover:bg-blue-500 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-blue-400/50">
-                    <span class="material-symbols-outlined text-base">rocket_launch</span>
-                    Analyze With AI
-                </button>
             </div>
         </div>
 
@@ -610,9 +571,9 @@
         <div class="grid grid-cols-12 gap-6">
             <div class="col-span-8 bg-surface-container-low rounded-xl p-6 border border-primary-container/20">
                 <div class="mb-6">
-                    <p class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Settings Workspace</p>
-                    <h2 class="text-2xl font-bold text-white mt-1">Dashboard Preferences</h2>
-                    <p class="text-sm text-gray-400 mt-2">Change language, accent color, interface mode and operator behavior without leaving the command center.</p>
+                    <p id="settings-workspace-label" class="text-[10px] uppercase tracking-[0.18em] text-[#adc6ff]">Settings Workspace</p>
+                    <h2 id="settings-title" class="text-2xl font-bold text-white mt-1">Dashboard Preferences</h2>
+                    <p id="settings-subtitle" class="text-sm text-gray-400 mt-2">Change language, accent color, interface mode and operator behavior without leaving the command center.</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -697,22 +658,22 @@
         // --- DATA DICTIONARY FOR TABS ---
         const tabData = {
             overview: {
-                density: { val: "85%", desc: "Traffic Elevated", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "traffic" },
-                speed:   { val: '24 <span class="text-lg font-normal opacity-50">km/h</span>', desc: "-12% vs normal", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "speed" },
-                aqi:     { val: "215", desc: "Critical AQI", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "air" },
-                pm:      { val: '185 <span class="text-lg font-normal opacity-50">µg/m³</span>', desc: "Hazardous PM2.5", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "matter" }
+                density: { val: "85%", desc: "Traffic Elevated", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "grid_view" },
+                speed:   { val: '24 <span class="text-lg font-normal opacity-50">km/h</span>', desc: "-12% vs normal", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "monitoring" },
+                aqi:     { val: "215", desc: "Critical AQI", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "airwave" },
+                pm:      { val: '185 <span class="text-lg font-normal opacity-50">µg/m³</span>', desc: "Hazardous PM2.5", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "blur_on" }
             },
             traffic: {
                 density: { val: "96%", desc: "Severe Congestion", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "traffic" },
-                speed:   { val: '12 <span class="text-lg font-normal opacity-50">km/h</span>', desc: "-48% vs normal", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "speed" },
-                aqi:     { val: "110", desc: "Moderate AQI", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "air" },
-                pm:      { val: '45 <span class="text-lg font-normal opacity-50">µg/m³</span>', desc: "Elevated PM2.5", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "matter" }
+                speed:   { val: '12 <span class="text-lg font-normal opacity-50">km/h</span>', desc: "-48% vs normal", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "route" },
+                aqi:     { val: "110", desc: "Moderate AQI", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "commute" },
+                pm:      { val: '45 <span class="text-lg font-normal opacity-50">µg/m³</span>', desc: "Elevated PM2.5", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-transparent", glow: false, icon: "warning" }
             },
             ecology: {
-                density: { val: "42%", desc: "Normal Flow", color: "text-green-400", bg: "bg-green-400/10", border: "border-transparent", glow: false, icon: "traffic" },
-                speed:   { val: '52 <span class="text-lg font-normal opacity-50">km/h</span>', desc: "Optimal Speed", color: "text-green-400", bg: "bg-green-400/10", border: "border-transparent", glow: false, icon: "speed" },
+                density: { val: "42%", desc: "Normal Flow", color: "text-green-400", bg: "bg-green-400/10", border: "border-transparent", glow: false, icon: "eco" },
+                speed:   { val: '52 <span class="text-lg font-normal opacity-50">km/h</span>', desc: "Optimal Speed", color: "text-green-400", bg: "bg-green-400/10", border: "border-transparent", glow: false, icon: "air" },
                 aqi:     { val: "340", desc: "Hazardous AQI", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "air" },
-                pm:      { val: '270 <span class="text-lg font-normal opacity-50">µg/m³</span>', desc: "Critical PM2.5", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "matter" }
+                pm:      { val: '270 <span class="text-lg font-normal opacity-50">µg/m³</span>', desc: "Critical PM2.5", color: "text-error", bg: "bg-error/10", border: "border-error-container/40", glow: true, icon: "filter_alt" }
             },
             settings: {
                 density: { val: "--", desc: "Sensors Offline", color: "text-gray-500", bg: "bg-gray-500/10", border: "border-transparent", glow: false, icon: "sensors_off" },
@@ -735,16 +696,128 @@
         };
         let lastAlertSignature = '';
         let chatHistory = [];
+        let currentLanguage = 'en';
+
+        const uiText = {
+            en: {
+                navOverview: 'Overview',
+                navTraffic: 'Traffic',
+                navEcology: 'Ecology',
+                navSettings: 'Settings',
+                kpiDensity: 'Density',
+                kpiSpeed: 'Avg Flow',
+                kpiAqi: 'Air Index',
+                kpiPm: 'Particulates',
+                chatHeading: 'AI Chat',
+                chatSubtitle: 'Ask about risks, reasons, next actions, or district status.',
+                chatPlaceholder: 'Ask the AI what is happening in the city...',
+                chatSend: 'Send',
+                settingsWorkspace: 'Settings Workspace',
+                settingsTitle: 'Dashboard Preferences',
+                settingsSubtitle: 'Change language, accent color, interface mode and operator behavior without leaving the command center.'
+            },
+            ru: {
+                navOverview: 'Обзор',
+                navTraffic: 'Трафик',
+                navEcology: 'Экология',
+                navSettings: 'Настройки',
+                kpiDensity: 'Плотность',
+                kpiSpeed: 'Поток',
+                kpiAqi: 'Индекс Воздуха',
+                kpiPm: 'Частицы',
+                chatHeading: 'AI Чат',
+                chatSubtitle: 'Спрашивайте про риски, причины, следующие действия и районы.',
+                chatPlaceholder: 'Спросите AI, что происходит в городе...',
+                chatSend: 'Отправить',
+                settingsWorkspace: 'Рабочее Пространство Настроек',
+                settingsTitle: 'Настройки Дашборда',
+                settingsSubtitle: 'Меняйте язык, акцентный цвет, режим интерфейса и поведение оператора прямо в командном центре.'
+            },
+            kz: {
+                navOverview: 'Шолу',
+                navTraffic: 'Трафик',
+                navEcology: 'Экология',
+                navSettings: 'Баптаулар',
+                kpiDensity: 'Тығыздық',
+                kpiSpeed: 'Ағын',
+                kpiAqi: 'Ауа Индексі',
+                kpiPm: 'Бөлшектер',
+                chatHeading: 'AI Чат',
+                chatSubtitle: 'Тәуекел, себеп, келесі әрекет және аудан туралы сұраңыз.',
+                chatPlaceholder: 'AI-дан қалада не болып жатқанын сұраңыз...',
+                chatSend: 'Жіберу',
+                settingsWorkspace: 'Баптау Аймағы',
+                settingsTitle: 'Дашборд Баптаулары',
+                settingsSubtitle: 'Тілді, екпін түсін, интерфейс режимін және оператор параметрлерін осы жерден өзгертіңіз.'
+            }
+        };
+
+        const kpiTitlesByTab = {
+            en: {
+                overview: { density: 'City Load', speed: 'Avg Flow', aqi: 'Air Index', pm: 'Particulates' },
+                traffic: { density: 'Traffic Density', speed: 'Road Speed', aqi: 'Transit Air', pm: 'Road Dust' },
+                ecology: { density: 'Eco Pressure', speed: 'Wind Flow', aqi: 'AQI Level', pm: 'PM2.5 Level' }
+            },
+            ru: {
+                overview: { density: 'Нагрузка Города', speed: 'Средний Поток', aqi: 'Индекс Воздуха', pm: 'Частицы' },
+                traffic: { density: 'Плотность Трафика', speed: 'Скорость Потока', aqi: 'Воздух Транспорта', pm: 'Дорожная Пыль' },
+                ecology: { density: 'Эко Нагрузка', speed: 'Поток Воздуха', aqi: 'Уровень AQI', pm: 'Уровень PM2.5' }
+            },
+            kz: {
+                overview: { density: 'Қала Жүктемесі', speed: 'Орташа Ағын', aqi: 'Ауа Индексі', pm: 'Бөлшектер' },
+                traffic: { density: 'Трафик Тығыздығы', speed: 'Жол Жылдамдығы', aqi: 'Көлік Ауасы', pm: 'Жол Тозаңы' },
+                ecology: { density: 'Эко Жүктеме', speed: 'Ауа Ағыны', aqi: 'AQI Деңгейі', pm: 'PM2.5 Деңгейі' }
+            }
+        };
 
         const tabCategoryMap = { overview: 'Overview', traffic: 'Traffic', ecology: 'Ecology', settings: 'Overview' };
 
+        function updateKpiLabels(tabName = activeTab) {
+            const langPack = kpiTitlesByTab[currentLanguage] || kpiTitlesByTab.en;
+            const titles = langPack[tabName] || langPack.overview;
+            document.getElementById('kpi-label-density').innerText = titles.density;
+            document.getElementById('kpi-label-speed').innerText = titles.speed;
+            document.getElementById('kpi-label-aqi').innerText = titles.aqi;
+            document.getElementById('kpi-label-pm').innerText = titles.pm;
+        }
+
+        function applyLanguage(lang) {
+            currentLanguage = uiText[lang] ? lang : 'en';
+            const t = uiText[currentLanguage];
+            document.getElementById('nav-overview-label').innerText = t.navOverview;
+            document.getElementById('nav-traffic-label').innerText = t.navTraffic;
+            document.getElementById('nav-ecology-label').innerText = t.navEcology;
+            document.getElementById('nav-settings-label').innerText = t.navSettings;
+            updateKpiLabels(activeTab);
+            document.getElementById('chat-heading').innerText = t.chatHeading;
+            document.getElementById('chat-subtitle').innerText = t.chatSubtitle;
+            document.getElementById('chat-input').placeholder = t.chatPlaceholder;
+            document.getElementById('chat-send-label').innerText = t.chatSend;
+            document.getElementById('settings-workspace-label').innerText = t.settingsWorkspace;
+            document.getElementById('settings-title').innerText = t.settingsTitle;
+            document.getElementById('settings-subtitle').innerText = t.settingsSubtitle;
+            document.getElementById('preview-language').innerText = document.getElementById('settings-language').selectedOptions[0].text;
+        }
+
+        function detectLocalLanguage(text) {
+            const lowered = text.toLowerCase();
+            if (/[әіңғүұқөһ]/.test(lowered) || lowered.includes('сәлем') || lowered.includes('неге') || lowered.includes('қалай')) {
+                return 'kz';
+            }
+            if (/[а-яё]/.test(lowered) || lowered.includes('привет') || lowered.includes('почему') || lowered.includes('что')) {
+                return 'ru';
+            }
+            return currentLanguage || 'en';
+        }
+
         function getCurrentPayload() {
+            const currentData = tabData[activeTab] || tabData.overview;
             return {
-                category: document.getElementById('input-category').value,
-                density: Number(document.getElementById('input-density').value),
-                avg_speed: Number(document.getElementById('input-speed').value),
-                aqi: Number(document.getElementById('input-aqi').value),
-                pm2_5: Number(document.getElementById('input-pm').value)
+                category: currentData.category || 'Overview',
+                density: Number(currentData.density.raw ?? 0),
+                avg_speed: Number(currentData.speed.raw ?? 0),
+                aqi: Number(currentData.aqi.raw ?? 0),
+                pm2_5: Number(currentData.pm.raw ?? 0)
             };
         }
 
@@ -816,6 +889,7 @@
                 applyKpis('traffic', data.kpis.traffic || {});
                 applyKpis('ecology', data.kpis.ecology || {});
 
+                updateVisibleKpis(activeTab);
                 updateChart(activeTab, activeMetric);
                 updateCityMap(activeTab, activeMetric);
                 maybeRaiseAutoAlert(getCurrentPayload());
@@ -823,6 +897,7 @@
             } catch (error) {
                 console.error(error);
                 chartSeries = fallbackChartSeries;
+                updateVisibleKpis(activeTab);
                 updateChart(activeTab, activeMetric);
                 updateCityMap(activeTab, activeMetric);
             }
@@ -849,6 +924,38 @@
             }
         }
 
+        function updateVisibleKpis(tabName = activeTab) {
+            const data = tabData[tabName];
+            if (!data) return;
+            updateKpiLabels(tabName);
+
+            ['density', 'speed', 'aqi', 'pm'].forEach((key) => {
+                const info = data[key];
+                const card = document.getElementById(`card-${key}`);
+                const iconBg = document.getElementById(`icon-bg-${key}`);
+                const valEl = document.getElementById(`val-${key}`);
+                const descEl = document.getElementById(`desc-${key}`);
+                const isActive = card.classList.contains('metric-card-active');
+
+                valEl.classList.remove('kpi-fade');
+                void valEl.offsetWidth;
+                valEl.classList.add('kpi-fade');
+
+                valEl.innerHTML = info.val;
+                descEl.textContent = info.desc;
+                iconBg.textContent = info.icon;
+
+                valEl.className = `text-4xl font-bold mb-1 transition-colors kpi-fade ${info.color === 'text-yellow-400' ? 'text-white' : info.color}`;
+                descEl.className = `text-sm font-medium uppercase text-[10px] tracking-widest transition-colors ${info.color}`;
+                iconBg.className = `material-symbols-outlined p-2 rounded-lg transition-colors ${info.color} ${info.bg}`;
+
+                card.className = `bg-surface-container-low p-6 rounded-xl border transition-all duration-150 cursor-default ${info.border} ${info.glow ? 'bento-glow-red' : ''}`;
+                if (isActive) {
+                    card.classList.add('metric-card-active');
+                }
+            });
+        }
+
         // --- TOAST NOTIFICATIONS ---
         const toastContainer = document.getElementById('toast-container');
         function showToast(message, type = 'success', title = null) {
@@ -868,39 +975,6 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
-
-        // --- RENDER AI ACTIONS ---
-        function renderActions(actions = null) {
-            const container = document.getElementById('ai-actions-container');
-            const items = actions || [
-                "Extend green light phase by 30% for all arterial roads.",
-                "Push notifications to residents to close windows.",
-                "Dispatch Eco-inspection to check perimeter."
-            ];
-            const icons = ['bolt', 'notifications_active', 'local_police'];
-            const titles = ['Adaptive Traffic Control', 'Public Health Advisory', 'Environmental Response'];
-            container.innerHTML = items.map((action, index) => `
-                <div class="ai-action-item group flex items-start gap-3 p-3 rounded-xl bg-surface-container-highest/40 hover:bg-surface-bright transition-all cursor-pointer border border-transparent hover:border-primary/30">
-                    <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5"><span class="action-icon material-symbols-outlined text-primary text-[14px]">${icons[index] || 'bolt'}</span></div>
-                    <div class="flex-1"><p class="text-xs font-semibold text-white mb-0.5">${titles[index] || `Action ${index + 1}`}</p><p class="text-[10px] text-gray-400 leading-tight">${action}</p></div>
-                </div>
-            `).join('');
-            
-            // Re-bind click events
-            document.querySelectorAll('.ai-action-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const iconSpan = this.querySelector('.action-icon');
-                    const title = this.querySelector('p.font-semibold').innerText;
-                    if (iconSpan.innerText !== 'check_circle') {
-                        iconSpan.innerText = 'check_circle';
-                        iconSpan.className = 'action-icon material-symbols-outlined text-green-400 text-[14px]';
-                        this.classList.add('opacity-60', 'border-green-500/30', 'bg-green-900/10');
-                        showToast(`Deployed: ${title}`, 'success');
-                    }
-                });
-            });
-        }
-        renderActions();
 
         async function sendChatMessage() {
             const chatInput = document.getElementById('chat-input');
@@ -934,15 +1008,90 @@
                 document.getElementById('ai-live-solution').innerText = data.quick_actions[0];
                 document.getElementById('ai-criticality').innerText = data.criticality;
                 addAiMessage('UrbanPulse AI', data.reply, data.criticality === 'High (Red Zone)' ? 'critical' : 'neutral');
-                renderActions(data.quick_actions);
                 maybeRaiseAutoAlert(getCurrentPayload(), data.criticality === 'High (Red Zone)');
             } catch (error) {
-                addAiMessage('System Notice', 'Chat request failed. The AI assistant is still available through safe fallback logic.', 'critical');
-                showToast(`Chat connection issue: ${error.message}`, 'error');
+                const localFallback = generateLocalChatReply(message, getCurrentPayload());
+                chatHistory.push({ role: 'assistant', content: localFallback.reply });
+                document.getElementById('model-source').innerText = 'Model: local fallback';
+                document.getElementById('ai-live-status').innerText = 'Local chat fallback active';
+                document.getElementById('ai-live-solution').innerText = localFallback.quick_actions[0];
+                document.getElementById('ai-criticality').innerText = localFallback.criticality;
+                addAiMessage('UrbanPulse AI', localFallback.reply, localFallback.criticality === 'High (Red Zone)' ? 'critical' : 'neutral');
+                maybeRaiseAutoAlert(getCurrentPayload(), localFallback.criticality === 'High (Red Zone)');
+                showToast('AI chat switched to local fallback mode.', 'info');
             } finally {
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = `<span class="material-symbols-outlined text-base">send</span> Send`;
             }
+        }
+
+        function generateLocalChatReply(message, payload) {
+            const text = message.toLowerCase().trim();
+            const lang = detectLocalLanguage(message);
+            const tr = (en, ru, kz) => ({ en, ru, kz }[lang]);
+            const criticality = payload.density > 80 || payload.aqi > 150
+                ? 'High (Red Zone)'
+                : payload.density > 55 || payload.aqi > 100 || payload.pm2_5 > 35 || payload.avg_speed < 30
+                    ? 'Medium (Yellow Zone)'
+                    : 'Low (Green Zone)';
+
+            const quick_actions = criticality === 'High (Red Zone)'
+                ? [
+                    'Activate the highest-priority response playbook for the active zone',
+                    'Warn operators and residents about the current risk escalation',
+                    'Increase live monitoring while mitigation is deployed'
+                ]
+                : criticality === 'Medium (Yellow Zone)'
+                    ? [
+                        'Apply preventive controls in the affected area',
+                        'Watch the active district for further escalation',
+                        'Prepare a stronger response if readings continue to worsen'
+                    ]
+                    : [
+                        'Continue routine monitoring across active sensors',
+                        'Use the current readings as a stable baseline',
+                        'Keep operators ready for any new anomaly'
+                    ];
+
+            let reply = tr(
+                `Current ${payload.category} status is ${criticality}. Density is ${Math.round(payload.density)}, average speed is ${Math.round(payload.avg_speed)} km/h, AQI is ${Math.round(payload.aqi)}, and PM2.5 is ${Math.round(payload.pm2_5)}.`,
+                `Текущий статус ${payload.category}: ${criticality}. Плотность ${Math.round(payload.density)}, средняя скорость ${Math.round(payload.avg_speed)} км/ч, AQI ${Math.round(payload.aqi)}, PM2.5 ${Math.round(payload.pm2_5)}.`,
+                `${payload.category} ағымдағы мәртебесі: ${criticality}. Тығыздық ${Math.round(payload.density)}, орташа жылдамдық ${Math.round(payload.avg_speed)} км/сағ, AQI ${Math.round(payload.aqi)}, PM2.5 ${Math.round(payload.pm2_5)}.`
+            );
+
+            if (text.includes('why') || text.includes('почему') || text.includes('reason')) {
+                reply = tr(
+                    `The alert level is ${criticality} because the current sensor values show ${payload.density > 80 || payload.avg_speed < 25 ? 'traffic stress' : 'environmental stress'} with AQI ${Math.round(payload.aqi)} and PM2.5 ${Math.round(payload.pm2_5)}.`,
+                    `Уровень тревоги ${criticality}, потому что текущие сенсоры показывают ${payload.density > 80 || payload.avg_speed < 25 ? 'транспортную нагрузку' : 'экологическую нагрузку'} при AQI ${Math.round(payload.aqi)} и PM2.5 ${Math.round(payload.pm2_5)}.`,
+                    `Дабыл деңгейі ${criticality}, себебі сенсорлар ${payload.density > 80 || payload.avg_speed < 25 ? 'көлік жүктемесін' : 'экологиялық жүктемені'} көрсетіп тұр, AQI ${Math.round(payload.aqi)}, PM2.5 ${Math.round(payload.pm2_5)}.`
+                );
+            } else if (text.includes('map') || text.includes('district') || text.includes('район') || text.includes('карта')) {
+                reply = tr(
+                    `The map highlights the active hotspot for ${payload.category} and shows how risk spreads into nearby districts. The brightest zone should be treated as the first response area.`,
+                    `Карта подсвечивает активный очаг по ${payload.category} и показывает, как риск распространяется на соседние районы. Самую яркую зону нужно считать первой зоной реагирования.`,
+                    `Карта ${payload.category} бойынша белсенді ошақты және тәуекелдің көрші аудандарға таралуын көрсетеді. Ең жарық аймақты бірінші әрекет ету аймағы деп қарастыру керек.`
+                );
+            } else if (text.includes('what should') || text.includes('что делать') || text.includes('action') || text.includes('help')) {
+                reply = tr(
+                    `The next best move is: ${quick_actions[0]}. After that, ${quick_actions[1].toLowerCase()}, and ${quick_actions[2].toLowerCase()}.`,
+                    `Лучшее следующее действие: ${quick_actions[0]}. Затем ${quick_actions[1].toLowerCase()} и ${quick_actions[2].toLowerCase()}.`,
+                    `Келесі ең дұрыс қадам: ${quick_actions[0]}. Содан кейін ${quick_actions[1].toLowerCase()} және ${quick_actions[2].toLowerCase()}.`
+                );
+            } else if (text.includes('dashboard') || text.includes('graph') || text.includes('chart') || text.includes('дашборд')) {
+                reply = tr(
+                    'This dashboard combines KPI cards, a live city map, trend graphs, and AI guidance. You can switch datasets, inspect signals, and ask me to explain any metric or risk pattern.',
+                    'Этот дашборд объединяет KPI-карточки, live-карту города, графики трендов и AI-подсказки. Можно переключать наборы данных, смотреть сигналы и спрашивать меня про любую метрику или риск.',
+                    'Бұл дашборд KPI-карталарын, live қала картасын, тренд графиктерін және AI кеңестерін біріктіреді. Деректерді ауыстырып, сигналдарды қарап, кез келген метрика не тәуекел туралы сұрай аласыз.'
+                );
+            } else if (text.includes('hello') || text.includes('hi') || text.includes('привет')) {
+                reply = tr(
+                    'I am UrbanPulse AI Copilot. Ask me about current risks, district impact, reasons for alerts, or what action to take next.',
+                    'Я UrbanPulse AI Copilot. Спрашивайте меня про текущие риски, влияние на районы, причины тревог и следующие действия.',
+                    'Мен UrbanPulse AI Copilotпын. Ағымдағы тәуекел, аудандарға әсері, дабыл себептері және келесі әрекет туралы сұраңыз.'
+                );
+            }
+
+            return { reply, criticality, quick_actions };
         }
 
         let activeTab = 'overview';
@@ -1197,6 +1346,7 @@
 
         document.getElementById('settings-language').addEventListener('change', (event) => {
             document.getElementById('preview-language').innerText = languageMap[event.target.value];
+            applyLanguage(event.target.value);
         });
 
         document.getElementById('settings-operator').addEventListener('input', (event) => {
@@ -1240,6 +1390,8 @@
         });
 
         updateCityMap(activeTab, activeMetric);
+        applyLanguage(document.getElementById('settings-language').value);
+        updateVisibleKpis(activeTab);
         refreshDashboardData();
         document.getElementById('chat-send-btn').addEventListener('click', sendChatMessage);
         document.getElementById('chat-input').addEventListener('keydown', (event) => {
@@ -1256,122 +1408,6 @@
             document.getElementById('ai-live-status').innerText = `Watching ${tabName} signals in real time`;
             document.getElementById('ai-live-solution').innerText = `AI is tracking ${metricMeta[activeMetric].label} and preparing next-best operational guidance.`;
         }, 5000);
-
-        // --- EXECUTE BUTTON LOGIC ---
-        const executeBtn = document.getElementById('execute-btn');
-        function resetExecuteBtn() {
-            executeBtn.innerHTML = `<span class="material-symbols-outlined text-base">rocket_launch</span> Analyze With AI`;
-            executeBtn.className = "mt-4 w-full py-3 bg-primary-container text-white font-bold rounded-xl shadow-[0_0_15px_rgba(0,109,230,0.4)] hover:bg-blue-500 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-blue-400/50";
-            executeBtn.classList.remove('executed');
-        }
-
-        executeBtn.addEventListener('click', async function() {
-            const payload = getCurrentPayload();
-
-            this.innerHTML = `<span class="material-symbols-outlined text-base animate-spin">refresh</span> Processing via AI...`;
-            this.classList.add('opacity-80');
-            this.disabled = true;
-
-            document.getElementById('val-density').innerHTML = `${payload.density}%`;
-            document.getElementById('val-speed').innerHTML = `${payload.avg_speed} <span class="text-lg font-normal opacity-50">km/h</span>`;
-            document.getElementById('val-aqi').innerHTML = `${payload.aqi}`;
-            document.getElementById('val-pm').innerHTML = `${payload.pm2_5} <span class="text-lg font-normal opacity-50">µg/m³</span>`;
-
-            try {
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-                const result = data.result;
-
-                document.getElementById('ai-desc').innerText = result.what_is_happening;
-                document.getElementById('ai-criticality').innerText = result.criticality;
-                document.getElementById('model-source').innerText = `Model: ${data.model} • ${data.source.toUpperCase()}`;
-                document.getElementById('ai-live-status').innerText = 'AI response updated just now';
-                document.getElementById('ai-live-solution').innerText = result.recommended_actions[0];
-                addAiMessage('AI Monitor', result.what_is_happening, result.criticality === 'High (Red Zone)' ? 'critical' : 'neutral');
-                addAiMessage('AI Solution', result.recommended_actions.join(' • '), 'solution');
-                renderActions(result.recommended_actions);
-                maybeRaiseAutoAlert(payload, true);
-                activeTab = payload.category === 'Traffic' ? 'traffic' : payload.category === 'Ecology' ? 'ecology' : 'overview';
-                updateChart(activeTab, activeMetric);
-                updateCityMap(activeTab, activeMetric);
-
-                if (result.criticality === 'High (Red Zone)') {
-                    document.getElementById('ai-alert-title').innerText = 'Immediate Attention';
-                    document.getElementById('ai-alert-title').className = 'text-[10px] font-bold text-error uppercase tracking-widest';
-                    document.getElementById('ai-alert-icon').innerText = 'warning';
-                    document.getElementById('ai-alert-icon').className = 'material-symbols-outlined text-error text-lg animate-pulse';
-                    document.getElementById('ai-criticality-bg').className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-error-container/80 rounded border border-error/30';
-                    document.getElementById('ai-alert-box').className = 'bg-error-container/10 border border-error-container/50 rounded-xl p-4 mb-6 bento-glow-red relative overflow-hidden';
-                    document.getElementById('ai-alert-bar').className = 'absolute top-0 left-0 w-1 h-full bg-error-container';
-                    document.getElementById('map-heatmap').style.background = 'radial-gradient(circle, rgba(222, 33, 28, 0.4) 0%, rgba(222, 33, 28, 0) 70%)';
-                    document.getElementById('map-zone-text').innerText = 'Active Incident Zone: Sector A';
-                    document.getElementById('map-dot').className = 'w-2 h-2 rounded-full bg-error-container animate-ping';
-                    document.getElementById('map-alert-zone').className = 'glass-panel px-4 py-2 rounded-lg flex items-center gap-3 border border-error/20';
-                    document.getElementById('global-status').innerText = 'Status: Warning';
-                    document.getElementById('global-status').className = 'text-xs font-semibold text-tertiary-container';
-                    document.getElementById('global-status-dot').className = 'w-1.5 h-1.5 bg-tertiary-container rounded-full animate-pulse';
-                    document.getElementById('system-alert-text').innerText = 'AI detected a high-severity incident. Immediate response is recommended.';
-                } else if (result.criticality === 'Medium (Yellow Zone)') {
-                    document.getElementById('ai-alert-title').innerText = 'Elevated Monitoring';
-                    document.getElementById('ai-alert-title').className = 'text-[10px] font-bold text-yellow-300 uppercase tracking-widest';
-                    document.getElementById('ai-alert-icon').innerText = 'monitoring';
-                    document.getElementById('ai-alert-icon').className = 'material-symbols-outlined text-yellow-300 text-lg';
-                    document.getElementById('ai-criticality-bg').className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-500/20 rounded border border-yellow-400/30';
-                    document.getElementById('ai-alert-box').className = 'bg-yellow-500/10 border border-yellow-400/30 rounded-xl p-4 mb-6 relative overflow-hidden';
-                    document.getElementById('ai-alert-bar').className = 'absolute top-0 left-0 w-1 h-full bg-yellow-400';
-                    document.getElementById('map-heatmap').style.background = 'radial-gradient(circle, rgba(250, 204, 21, 0.35) 0%, rgba(250, 204, 21, 0) 70%)';
-                    document.getElementById('map-zone-text').innerText = 'Watch Zone: Sector A';
-                    document.getElementById('map-dot').className = 'w-2 h-2 rounded-full bg-yellow-400';
-                    document.getElementById('map-alert-zone').className = 'glass-panel px-4 py-2 rounded-lg flex items-center gap-3 border border-yellow-400/20';
-                    document.getElementById('global-status').innerText = 'Status: Elevated';
-                    document.getElementById('global-status').className = 'text-xs font-semibold text-yellow-300';
-                    document.getElementById('global-status-dot').className = 'w-1.5 h-1.5 bg-yellow-400 rounded-full';
-                    document.getElementById('system-alert-text').innerText = 'AI is monitoring an unstable condition and preparing preventive actions.';
-                } else {
-                    document.getElementById('ai-alert-title').innerText = 'Stable Conditions';
-                    document.getElementById('ai-alert-title').className = 'text-[10px] font-bold text-green-300 uppercase tracking-widest';
-                    document.getElementById('ai-alert-icon').innerText = 'check_circle';
-                    document.getElementById('ai-alert-icon').className = 'material-symbols-outlined text-green-300 text-lg';
-                    document.getElementById('ai-criticality-bg').className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-green-500/20 rounded border border-green-400/30';
-                    document.getElementById('ai-alert-box').className = 'bg-green-500/10 border border-green-400/30 rounded-xl p-4 mb-6 relative overflow-hidden';
-                    document.getElementById('ai-alert-bar').className = 'absolute top-0 left-0 w-1 h-full bg-green-400';
-                    document.getElementById('map-heatmap').style.background = 'radial-gradient(circle, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0) 70%)';
-                    document.getElementById('map-zone-text').innerText = 'Sector A: Normalized';
-                    document.getElementById('map-dot').className = 'w-2 h-2 rounded-full bg-green-400';
-                    document.getElementById('map-alert-zone').className = 'glass-panel px-4 py-2 rounded-lg flex items-center gap-3 border border-green-400/20';
-                    document.getElementById('global-status').innerText = 'Status: Optimal';
-                    document.getElementById('global-status').className = 'text-xs font-semibold text-green-300';
-                    document.getElementById('global-status-dot').className = 'w-1.5 h-1.5 bg-green-400 rounded-full';
-                    document.getElementById('system-alert-text').innerText = 'AI reports stable conditions. Routine monitoring remains active.';
-                }
-
-                document.getElementById('current-area').innerText = payload.category === 'Ecology' ? 'Environmental Sector' : payload.category === 'Traffic' ? 'Financial District' : 'Central Operations';
-                document.getElementById('population-flow').innerText = payload.category === 'Ecology' ? 'Air response network' : payload.category === 'Traffic' ? '142.4k / hr' : 'Mixed system load';
-                showToast(`AI analysis complete: ${result.criticality}`, 'success');
-            } catch (error) {
-                document.getElementById('ai-desc').innerText = 'Backend connection failed. Start FastAPI and verify the /analyze endpoint.';
-                document.getElementById('model-source').innerText = 'Model: unavailable';
-                document.getElementById('ai-live-status').innerText = 'Fallback monitoring active';
-                document.getElementById('ai-live-solution').innerText = 'AI server unavailable. Dashboard is using safe recovery guidance.';
-                addAiMessage('System Notice', 'AI backend is unavailable. Switching to safe fallback guidance.', 'critical');
-                renderActions([
-                    'Restart the backend service and verify connectivity',
-                    'Check model configuration and API credentials',
-                    'Keep the dashboard in monitored mode until recovery'
-                ]);
-                showToast(`Connection issue: ${error.message}`, 'error');
-            } finally {
-                resetExecuteBtn();
-            }
-        });
 
         // --- TAB SWITCHING LOGIC ---
         const navItems = document.querySelectorAll('.nav-item');
@@ -1392,6 +1428,10 @@
                 if(!data) return;
                 activeTab = tabName === 'settings' ? 'overview' : tabName;
 
+                if (tabName !== 'settings') {
+                    updateVisibleKpis(activeTab);
+                }
+
                 if (tabName === 'settings') {
                     dashboardContent.classList.add('hidden');
                     settingsPage.classList.remove('hidden');
@@ -1402,61 +1442,25 @@
 
                 settingsPage.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
-
-                document.getElementById('input-category').value = data.category || 'Overview';
-                document.getElementById('input-density').value = data.density.raw ?? 0;
-                document.getElementById('input-speed').value = data.speed.raw ?? 0;
-                document.getElementById('input-aqi').value = data.aqi.raw ?? 0;
-                document.getElementById('input-pm').value = data.pm.raw ?? 0;
-                updateChart(activeTab, activeMetric);
-                updateCityMap(activeTab, activeMetric);
-                closeMapChart();
+                requestAnimationFrame(() => {
+                    updateChart(activeTab, activeMetric);
+                    updateCityMap(activeTab, activeMetric);
+                    closeMapChart();
+                });
 
                 // 2. Reset AI panel & map for demo purposes
-                renderActions([
-                    'Awaiting AI analysis for current tab selection.',
-                    'Review the updated KPI values before execution.',
-                    'Run the assistant to generate live recommendations.'
-                ]);
-                resetExecuteBtn();
                 document.getElementById('map-heatmap').style.background = '';
                 document.getElementById('map-zone-text').innerText = "Active Incident Zone: Sector A";
                 document.getElementById('map-dot').className = "w-2 h-2 rounded-full bg-error-container animate-ping";
                 document.getElementById('map-alert-zone').className = "glass-panel px-4 py-2 rounded-lg flex items-center gap-3 border border-error/20";
                 document.getElementById('global-status').innerText = "Status: Warning";
-                document.getElementById('model-source').innerText = 'Model: waiting';
-                document.getElementById('ai-desc').innerText = 'Dashboard context updated. Run AI analysis to generate a fresh incident summary.';
+                document.getElementById('model-source').innerText = 'Model: fallback ready';
+                document.getElementById('ai-desc').innerText = 'Context updated. Ask the AI about the current signals, district risk, or the next recommended response.';
                 document.getElementById('ai-live-status').innerText = `Context switched to ${tabName.toUpperCase()}`;
-                document.getElementById('ai-live-solution').innerText = 'AI is comparing the latest city signals and preparing the next response.';
+                document.getElementById('ai-live-solution').innerText = 'AI is ready to explain the current signals and answer dashboard questions.';
                 addAiMessage('Context Update', `Dashboard switched to ${tabName.toUpperCase()} data stream.`, 'neutral');
                 showToast(`Data Source Switched to: ${tabName.toUpperCase()}`, 'info');
 
-                // 3. Update 4 KPI Cards dynamically
-                ['density', 'speed', 'aqi', 'pm'].forEach(key => {
-                    const info = data[key];
-                    const card = document.getElementById(`card-${key}`);
-                    const iconBg = document.getElementById(`icon-bg-${key}`);
-                    const valEl = document.getElementById(`val-${key}`);
-                    const descEl = document.getElementById(`desc-${key}`);
-
-                    // Remove animation class to restart it
-                    valEl.classList.remove('kpi-fade');
-                    void valEl.offsetWidth; // trigger reflow
-                    valEl.classList.add('kpi-fade');
-
-                    // Update values
-                    valEl.innerHTML = info.val;
-                    descEl.innerHTML = info.desc;
-                    iconBg.innerHTML = info.icon;
-                    
-                    // Note: In Tailwind, we can't easily concatenate dynamic class strings unless they exist in the bundle.
-                    // Because I used explicit classes in the dictionary above, they will work.
-                    valEl.className = `text-4xl font-bold mb-1 transition-colors kpi-fade ${info.color === 'text-yellow-400' ? 'text-white' : info.color}`;
-                    descEl.className = `text-sm font-medium uppercase text-[10px] tracking-widest transition-colors ${info.color}`;
-                    iconBg.className = `material-symbols-outlined p-2 rounded-lg transition-colors ${info.color} ${info.bg}`;
-                    
-                    card.className = `bg-surface-container-low p-6 rounded-xl border transition-all duration-500 cursor-default ${info.border} ${info.glow ? 'bento-glow-red' : ''}`;
-                });
             });
         });
     });
