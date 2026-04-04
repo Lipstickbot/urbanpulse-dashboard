@@ -799,8 +799,10 @@
             traffic: { labels: [], density: [], avg_flow: [], aqi: [], pm25: [] },
             ecology: { labels: [], density: [], avg_flow: [], aqi: [], pm25: [] }
         };
+        const DASHBOARD_STORAGE_KEY = 'urbanpulse.dashboard.state.v1';
         let lastAlertSignature = '';
         let chatHistory = [];
+        let chatDisplayHistory = [];
         let currentLanguage = 'en';
 
         const uiText = {
@@ -1129,6 +1131,175 @@
                 feed.removeChild(feed.firstElementChild);
             }
             feed.scrollTop = feed.scrollHeight;
+            chatDisplayHistory.push({ title, body, tone });
+            if (chatDisplayHistory.length > 12) {
+                chatDisplayHistory = chatDisplayHistory.slice(-12);
+            }
+            saveDashboardState();
+        }
+
+        function applyTheme(theme) {
+            const body = document.body;
+            const themeControl = document.getElementById('settings-theme');
+            if (themeControl && themeControl.value !== theme) {
+                themeControl.value = theme;
+            }
+            if (theme === 'emerald') {
+                body.style.backgroundColor = '#081a14';
+            } else if (theme === 'marine') {
+                body.style.backgroundColor = '#0b1326';
+            } else {
+                body.style.backgroundColor = '#07111f';
+            }
+        }
+
+        function setAccentColor(color) {
+            const accent = color || '#006de6';
+            document.querySelectorAll('.accent-swatch').forEach((item) => {
+                item.className = item.className.replace('border-2', 'border').replace('border-white/30', 'border-white/20');
+                if (item.dataset.color === accent) {
+                    item.classList.remove('border');
+                    item.classList.add('border-2', 'border-white/30');
+                }
+            });
+            document.documentElement.style.setProperty('--accent-live', accent);
+            document.getElementById('preview-accent').style.backgroundColor = accent;
+            document.getElementById('preview-accent-text').innerText = accentMap[accent] || 'Custom';
+        }
+
+        function setNavState(tabName) {
+            document.querySelectorAll('.nav-item').forEach((nav) => {
+                nav.classList.remove('border-[#006de6]', 'text-[#adc6ff]');
+                nav.classList.add('border-transparent', 'text-[#c2c6d8]');
+                if (nav.getAttribute('data-tab') === tabName) {
+                    nav.classList.remove('border-transparent', 'text-[#c2c6d8]');
+                    nav.classList.add('border-[#006de6]', 'text-[#adc6ff]');
+                }
+            });
+        }
+
+        function buildDashboardState() {
+            return {
+                language: currentLanguage,
+                theme: document.getElementById('settings-theme').value,
+                operator: document.getElementById('settings-operator').value || 'Admin Command',
+                accent: document.querySelector('.accent-swatch.border-2')?.dataset.color || '#006de6',
+                activeTab,
+                activeMetric,
+                currentView: settingsPage.classList.contains('hidden') ? 'dashboard' : 'settings',
+                selectedDistrict,
+                districtInsightVisible,
+                notifyEnabled: document.getElementById('settings-notify-toggle').classList.contains('active'),
+                compactEnabled: document.getElementById('settings-compact-toggle').classList.contains('active'),
+                chatHistory,
+                chatDisplayHistory,
+                headerNotifications
+            };
+        }
+
+        function saveDashboardState(showConfirmation = false) {
+            try {
+                localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(buildDashboardState()));
+                if (showConfirmation) {
+                    showToast('Dashboard saved locally on this device.', 'success');
+                }
+            } catch (error) {
+                console.error('Local save failed:', error);
+                if (showConfirmation) {
+                    showToast('Local save failed in this browser.', 'error');
+                }
+            }
+        }
+
+        function restoreChatFeed(savedMessages = []) {
+            const feed = document.getElementById('ai-chat-feed');
+            feed.innerHTML = '';
+            chatDisplayHistory = [];
+            savedMessages.forEach((message) => {
+                addAiMessage(message.title, message.body, message.tone || 'neutral');
+            });
+        }
+
+        function loadDashboardState() {
+            try {
+                const raw = localStorage.getItem(DASHBOARD_STORAGE_KEY);
+                if (!raw) return false;
+                const state = JSON.parse(raw);
+                if (!state || typeof state !== 'object') return false;
+
+                if (state.language && uiText[state.language]) {
+                    document.getElementById('settings-language').value = state.language;
+                    currentLanguage = state.language;
+                }
+
+                document.getElementById('settings-operator').value = state.operator || 'Admin Command';
+                document.getElementById('preview-operator').innerText = state.operator || 'Admin Command';
+                document.getElementById('header-account-name').innerText = state.operator || 'Admin Command';
+                document.getElementById('account-panel-name').innerText = state.operator || 'Admin Command';
+
+                if (state.theme) {
+                    applyTheme(state.theme);
+                }
+
+                setAccentColor(state.accent || '#006de6');
+
+                if (typeof state.notifyEnabled === 'boolean') {
+                    document.getElementById('settings-notify-toggle').classList.toggle('active', state.notifyEnabled);
+                }
+
+                if (typeof state.compactEnabled === 'boolean') {
+                    document.getElementById('settings-compact-toggle').classList.toggle('active', state.compactEnabled);
+                    dashboardContent.classList.toggle('gap-4', state.compactEnabled);
+                }
+
+                if (Array.isArray(state.headerNotifications) && state.headerNotifications.length) {
+                    headerNotifications = state.headerNotifications.slice(0, 8);
+                }
+
+                activeTab = state.activeTab || 'overview';
+                activeMetric = state.activeMetric || 'avg_flow';
+                selectedDistrict = state.selectedDistrict || 'almaly';
+                districtInsightVisible = Boolean(state.districtInsightVisible);
+                chatHistory = Array.isArray(state.chatHistory) ? state.chatHistory.slice(-12) : [];
+
+                applyLanguage(document.getElementById('settings-language').value);
+                updateVisibleKpis(activeTab);
+                updateChart(activeTab, activeMetric);
+                updateCityMap(activeTab, activeMetric);
+
+                document.querySelectorAll('.chart-chip').forEach((chip) => {
+                    chip.classList.toggle('active', chip.dataset.metric === activeMetric);
+                });
+
+                if (districtInsightVisible) {
+                    updateDistrictInsight(selectedDistrict, activeTab, activeMetric);
+                } else {
+                    document.getElementById('district-insight-card').classList.add('hidden');
+                    document.getElementById('district-insight-line').classList.add('hidden');
+                    document.getElementById('district-insight-dot').classList.add('hidden');
+                }
+
+                if (Array.isArray(state.chatDisplayHistory) && state.chatDisplayHistory.length) {
+                    restoreChatFeed(state.chatDisplayHistory.slice(-12));
+                }
+
+                renderHeaderNotifications();
+
+                if (state.currentView === 'settings') {
+                    dashboardContent.classList.add('hidden');
+                    settingsPage.classList.remove('hidden');
+                    setNavState('settings');
+                } else {
+                    dashboardContent.classList.remove('hidden');
+                    settingsPage.classList.add('hidden');
+                    setNavState(activeTab);
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Local restore failed:', error);
+                return false;
+            }
         }
 
         function updateVisibleKpis(tabName = activeTab) {
@@ -1219,6 +1390,7 @@
             headerNotifications.unshift({ title, message, level });
             headerNotifications = headerNotifications.slice(0, 8);
             renderHeaderNotifications();
+            saveDashboardState();
         }
 
         function showToast(message, type = 'success', title = null) {
@@ -1249,8 +1421,8 @@
             const message = chatInput.value.trim();
             if (!message) return;
 
-            addAiMessage('Operator', message, 'user');
             chatHistory.push({ role: 'user', content: message });
+            addAiMessage('Operator', message, 'user');
             chatInput.value = '';
             sendBtn.disabled = true;
             sendBtn.innerHTML = `<span class="material-symbols-outlined text-base animate-spin">refresh</span> Sending`;
@@ -1275,6 +1447,7 @@
                 document.getElementById('ai-live-solution').innerText = data.quick_actions[0];
                 document.getElementById('ai-criticality').innerText = data.criticality;
                 addAiMessage('UrbanPulse AI', data.reply, data.criticality === 'High (Red Zone)' ? 'critical' : 'neutral');
+                saveDashboardState();
             } catch (error) {
                 const localFallback = generateLocalChatReply(message, getCurrentPayload());
                 chatHistory.push({ role: 'assistant', content: localFallback.reply });
@@ -1284,6 +1457,7 @@
                 document.getElementById('ai-criticality').innerText = localFallback.criticality;
                 addAiMessage('UrbanPulse AI', localFallback.reply, localFallback.criticality === 'High (Red Zone)' ? 'critical' : 'neutral');
                 showToast('AI chat switched to local fallback mode.', 'info');
+                saveDashboardState();
             } finally {
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = `<span class="material-symbols-outlined text-base">send</span> Send`;
@@ -1688,6 +1862,7 @@
                 button.classList.add('active');
                 activeMetric = button.dataset.metric;
                 updateChart(activeTab, activeMetric);
+                saveDashboardState();
                 showToast(`Graph updated: ${metricMeta[activeMetric].label}`, 'info');
             });
         });
@@ -1708,6 +1883,7 @@
                 if (districtInsightVisible) {
                     updateDistrictInsight(selectedDistrict, activeTab, activeMetric);
                 }
+                saveDashboardState();
                 showToast(`Map updated: ${metricMeta[activeMetric].label}`, 'info');
             });
         });
@@ -1723,10 +1899,12 @@
                     line.classList.add('hidden');
                     dot.classList.add('hidden');
                     Object.values(districtEls).forEach((district) => district.classList.remove('district-active'));
+                    saveDashboardState();
                     return;
                 }
                 selectedDistrict = districtName;
                 updateDistrictInsight(selectedDistrict, activeTab, activeMetric);
+                saveDashboardState();
             });
         });
 
@@ -1752,6 +1930,7 @@
         document.getElementById('settings-language').addEventListener('change', (event) => {
             document.getElementById('preview-language').innerText = languageMap[event.target.value];
             applyLanguage(event.target.value);
+            saveDashboardState();
         });
 
         document.getElementById('settings-operator').addEventListener('input', (event) => {
@@ -1762,6 +1941,7 @@
             }
             document.getElementById('header-account-name').innerText = operatorName;
             document.getElementById('account-panel-name').innerText = operatorName;
+            saveDashboardState();
         });
 
         document.querySelectorAll('.accent-swatch').forEach((swatch) => {
@@ -1772,6 +1952,7 @@
                 document.documentElement.style.setProperty('--accent-live', swatch.dataset.color);
                 document.getElementById('preview-accent').style.backgroundColor = swatch.dataset.color;
                 document.getElementById('preview-accent-text').innerText = accentMap[swatch.dataset.color];
+                saveDashboardState();
             });
         });
 
@@ -1780,23 +1961,19 @@
             if (this.classList.contains('active')) {
                 showToast('AI Auto Alerts enabled', 'alert', 'AI Auto Alerts enabled');
             }
+            saveDashboardState();
         });
 
         document.getElementById('settings-compact-toggle').addEventListener('click', function() {
             this.classList.toggle('active');
             dashboardContent.classList.toggle('gap-4');
+            saveDashboardState();
         });
 
         document.getElementById('save-settings-btn').addEventListener('click', () => {
             const theme = document.getElementById('settings-theme').value;
-            if (theme === 'emerald') {
-                document.body.style.backgroundColor = '#081a14';
-            } else if (theme === 'marine') {
-                document.body.style.backgroundColor = '#0b1326';
-            } else {
-                document.body.style.backgroundColor = '#111827';
-            }
-            showToast('Settings saved for this dashboard session.', 'success');
+            applyTheme(theme);
+            saveDashboardState(true);
         });
 
         const notificationsBtn = document.getElementById('header-notifications-btn');
@@ -1818,6 +1995,7 @@
         clearNotificationsBtn.addEventListener('click', () => {
             headerNotifications = [];
             renderHeaderNotifications();
+            saveDashboardState();
         });
 
         document.addEventListener('click', (event) => {
@@ -1829,13 +2007,17 @@
             }
         });
 
-        updateCityMap(activeTab, activeMetric);
-        document.getElementById('settings-language').value = 'ru';
-        applyLanguage(document.getElementById('settings-language').value);
-        updateVisibleKpis(activeTab);
-        renderHeaderNotifications();
+        const restoredState = loadDashboardState();
+        if (!restoredState) {
+            updateCityMap(activeTab, activeMetric);
+            document.getElementById('settings-language').value = 'ru';
+            applyLanguage(document.getElementById('settings-language').value);
+            updateVisibleKpis(activeTab);
+            renderHeaderNotifications();
+            addAiMessage('UrbanPulse AI', 'Готов помочь по дашборду, карте Алматы, трафику, экологии и текущим рискам города.', 'neutral');
+            saveDashboardState();
+        }
         refreshDashboardData();
-        addAiMessage('UrbanPulse AI', 'Готов помочь по дашборду, карте Алматы, трафику, экологии и текущим рискам города.', 'neutral');
         document.getElementById('chat-send-btn').addEventListener('click', sendChatMessage);
         document.getElementById('chat-input').addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
@@ -1878,13 +2060,16 @@
                 if (tabName === 'settings') {
                     dashboardContent.classList.add('hidden');
                     settingsPage.classList.remove('hidden');
+                    setNavState('settings');
                     closeMapChart();
+                    saveDashboardState();
                     showToast('Settings workspace opened.', 'info');
                     return;
                 }
 
                 settingsPage.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
+                setNavState(tabName);
                 requestAnimationFrame(() => {
                     updateChart(activeTab, activeMetric);
                     updateCityMap(activeTab, activeMetric);
@@ -1904,6 +2089,7 @@
                 document.getElementById('ai-desc').innerText = '';
                 document.getElementById('ai-live-status').innerText = '';
                 document.getElementById('ai-live-solution').innerText = '';
+                saveDashboardState();
                 showToast(`Data Source Switched to: ${tabName.toUpperCase()}`, 'info');
 
             });
