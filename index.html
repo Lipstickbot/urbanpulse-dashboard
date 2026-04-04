@@ -799,6 +799,7 @@
             traffic: { labels: [], density: [], avg_flow: [], aqi: [], pm25: [] },
             ecology: { labels: [], density: [], avg_flow: [], aqi: [], pm25: [] }
         };
+        const API_BASE = 'https://balloon-ericsson-limit-phase.trycloudflare.com';
         const DASHBOARD_STORAGE_KEY = 'urbanpulse.dashboard.state.v1';
         let lastAlertSignature = '';
         let chatHistory = [];
@@ -1060,7 +1061,7 @@
 
         async function refreshDashboardData(showPing = false) {
             try {
-                const response = await fetch('/dashboard-data');
+                const response = await fetch(`${API_BASE}/dashboard-data`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 chartSeries = {
@@ -1428,7 +1429,7 @@
             sendBtn.innerHTML = `<span class="material-symbols-outlined text-base animate-spin">refresh</span> Sending`;
 
             try {
-                const response = await fetch('/chat', {
+                const response = await fetch(`${API_BASE}/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
