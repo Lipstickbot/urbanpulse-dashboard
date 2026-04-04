@@ -828,7 +828,7 @@ def chat_with_llm(request: AIChatRequest) -> AIChatResponse:
 
 @app.get("/", response_class=FileResponse)
 def dashboard() -> FileResponse:
-    return FileResponse(BASE_DIR / "dashboard.html")
+    return FileResponse(BASE_DIR / "index.html")
 
 
 @app.get("/health")
